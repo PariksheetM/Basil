@@ -28,7 +28,7 @@ $envPath = dirname(__DIR__) . '/.env';
 loadEnv($envPath);
 
 // CORS headers
-$corsOrigin = getenv('CORS_ORIGIN') ?: 'http://localhost:5173';
+$corsOrigin = getenv('CORS_ORIGIN') ?: (getenv('FRONTEND_URL') ?: 'http://localhost:5173');
 header("Access-Control-Allow-Origin: " . $corsOrigin);
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
@@ -41,28 +41,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 class Database {
+    private $driver;
     private $host;
+    private $port;
     private $db_name;
     private $username;
     private $password;
+    private $sslmode;
     public $conn;
 
     public function __construct() {
-        $this->host = getenv('DB_HOST') ?: 'localhost';
+        $this->driver = getenv('DB_DRIVER') ?: 'mysql';
+        $this->host = $this->normalizeHost(getenv('DB_HOST') ?: 'localhost');
         $this->db_name = getenv('DB_NAME') ?: 'food_ordering_db';
         $this->username = getenv('DB_USER') ?: 'root';
         $this->password = getenv('DB_PASS') ?: '';
+        $this->sslmode = getenv('DB_SSLMODE') ?: 'require';
+        $this->port = getenv('DB_PORT');
+
+        // Supabase uses Postgres with SSL; auto-detect if host points to Supabase
+        if ($this->driver === 'mysql' && $this->looksLikeSupabase($this->host)) {
+            $this->driver = 'pgsql';
+        }
+
+        if (!$this->port) {
+            $this->port = $this->driver === 'pgsql' ? 5432 : 3306;
+        }
     }
 
     public function getConnection() {
         $this->conn = null;
 
         try {
-            $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
-                $this->username,
-                $this->password
-            );
+            $dsn = $this->buildDsn();
+            $this->conn = new PDO($dsn, $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->exec("set names utf8");
         } catch(PDOException $exception) {
@@ -70,6 +82,31 @@ class Database {
         }
 
         return $this->conn;
+    }
+
+    private function buildDsn() {
+        if ($this->driver === 'pgsql') {
+            $ssl = $this->sslmode ? ";sslmode=" . $this->sslmode : '';
+            return "pgsql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name . $ssl;
+        }
+
+        // Default MySQL DSN
+        return "mysql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name;
+    }
+
+    private function normalizeHost($host) {
+        $host = trim($host);
+        if (stripos($host, 'http://') === 0 || stripos($host, 'https://') === 0) {
+            $parts = parse_url($host);
+            if ($parts && isset($parts['host'])) {
+                return $parts['host'];
+            }
+        }
+        return $host;
+    }
+
+    private function looksLikeSupabase($host) {
+        return stripos($host, 'supabase.co') !== false;
     }
 }
 ?>
