@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../utils/api.js';
 import { Search, Eye, Mail, Phone, Calendar, ShoppingBag, X } from 'lucide-react';
 
 const AdminCustomers = () => {
@@ -13,7 +14,7 @@ const AdminCustomers = () => {
 
     const fetchCustomers = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/admin/customers.php');
+            const response = await fetch(`${API_BASE_URL}/admin/customers.php`);
             const result = await response.json();
             if (result.success) {
                 setCustomers(result.data);

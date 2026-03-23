@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Download, Eye, Trash2, X } from 'lucide-react';
+import { API_BASE_URL } from '../../utils/api.js';
 
 const AdminOrders = () => {
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const AdminOrders = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/admin/orders.php', {
+            const response = await fetch(`${API_BASE_URL}/admin/orders.php`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -56,7 +57,7 @@ const AdminOrders = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/admin/orders.php', {
+            const response = await fetch(`${API_BASE_URL}/admin/orders.php`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -72,10 +73,12 @@ const AdminOrders = () => {
 
             const result = await response.json();
             if (result.success) {
-                setOrders(orders.map(order =>
+                const updated = orders.map(order =>
                     order.id === orderId ? { ...order, status: newStatus } : order
-                ));
-                setSelectedOrder(null);
+                );
+                setOrders(updated);
+                // Keep modal open but reflect the new status
+                setSelectedOrder((prev) => prev ? { ...prev, status: newStatus } : null);
             }
         } catch (error) {
             console.error('Error updating order:', error);
@@ -91,7 +94,7 @@ const AdminOrders = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:8000/api/admin/orders.php', {
+                const response = await fetch(`${API_BASE_URL}/admin/orders.php`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -127,9 +130,19 @@ const AdminOrders = () => {
         const normalized = (status || '').toLowerCase();
         if (normalized.includes('pending')) return 'status-pill pending';
         if (normalized.includes('confirm')) return 'status-pill confirmed';
+        if (normalized === 'preparing') return 'status-pill processing';
+        if (normalized === 'ready') return 'status-pill bg-amber-100 text-amber-700';
         if (normalized.includes('deliver')) return 'status-pill delivered';
         return 'status-pill processing';
     };
+
+    const ORDER_STATUSES = [
+        { value: 'Pending',   label: 'Pending',   color: 'bg-slate-100 text-slate-700 hover:bg-slate-200' },
+        { value: 'Confirmed', label: 'Confirmed', color: 'bg-blue-600 text-white hover:bg-blue-700' },
+        { value: 'Preparing', label: 'Preparing', color: 'bg-orange-500 text-white hover:bg-orange-600' },
+        { value: 'Ready',     label: 'Ready',     color: 'bg-amber-500 text-white hover:bg-amber-600' },
+        { value: 'Delivered', label: 'Delivered', color: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+    ];
 
     const formatCurrency = (val) => `₹${Number(val || 0).toLocaleString()}`;
 
@@ -171,6 +184,8 @@ const AdminOrders = () => {
                     <option value="all">Status: All</option>
                     <option value="Pending">Pending</option>
                     <option value="Confirmed">Confirmed</option>
+                    <option value="Preparing">Preparing</option>
+                    <option value="Ready">Ready</option>
                     <option value="Delivered">Delivered</option>
                 </select>
 
@@ -273,7 +288,7 @@ const AdminOrders = () => {
                                 <p className="text-sm font-bold text-slate-900 mb-2">Customer Details</p>
                                 <div className="grid grid-cols-2 gap-2 text-sm text-slate-700">
                                     <span>Name: <strong>{selectedOrder.customer.name}</strong></span>
-                                    <span>Email: {selectedOrder.customer.email || '—'}</span>
+                                    <span>Email: {selectedOrder.customer.email || '₹€”'}</span>
                                     <span>Phone: {selectedOrder.customer.phone}</span>
                                     <span>Address: {selectedOrder.address}</span>
                                 </div>
@@ -335,9 +350,23 @@ const AdminOrders = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => updateOrderStatus(selectedOrder.id, 'Confirmed')} className="soft-input bg-blue-600 text-white font-bold text-center">Mark as Confirmed</button>
-                                <button onClick={() => updateOrderStatus(selectedOrder.id, 'Delivered')} className="soft-input bg-emerald-600 text-white font-bold text-center">Mark as Delivered</button>
+                            <div className="space-y-2">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Update Order Status</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {ORDER_STATUSES.map(({ value, label, color }) => (
+                                        <button
+                                            key={value}
+                                            onClick={() => updateOrderStatus(selectedOrder.id, value)}
+                                            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                                                selectedOrder.status === value
+                                                    ? 'ring-2 ring-offset-1 ring-emerald-400 ' + color
+                                                    : color
+                                            }`}
+                                        >
+                                            {selectedOrder.status === value ? '₹œ“ ' : ''}{label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>

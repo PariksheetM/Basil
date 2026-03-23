@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Check, ArrowRight } from 'lucide-react';
 
 const preferenceOptions = [
     {
@@ -117,10 +118,8 @@ const MenuPreferenceModal = ({ isOpen = true, initialPreference = '', onClose, o
                                         isActive ? accent.focusRing : ''
                                     }`}
                                 >
-                                    <div
-                                        className={`absolute right-4 top-4 flex h-8 w-8 scale-75 items-center justify-center rounded-full text-white opacity-0 shadow-md transition-all peer-checked:scale-100 peer-checked:opacity-100 ${accent.checkBg}`}
-                                    >
-                                        <span className="material-icons text-sm font-bold">check</span>
+                                    <div className={`absolute right-4 top-4 flex h-8 w-8 scale-75 items-center justify-center rounded-full text-white opacity-0 shadow-md transition-all peer-checked:scale-100 peer-checked:opacity-100 ${accent.checkBg}`}>
+                                        <Check size={14} />
                                     </div>
 
                                     <div className="relative h-44 overflow-hidden">
@@ -139,7 +138,7 @@ const MenuPreferenceModal = ({ isOpen = true, initialPreference = '', onClose, o
 
                                     <div className="flex flex-grow flex-col items-center justify-center px-5 pb-5 pt-5 text-center">
                                         <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full ${accent.badgeBg} ${accent.badgeText}`}>
-                                            <span className="material-icons">{option.icon}</span>
+                                            {option.id === 'veg' ? <Check size={20} /> : <span className="text-lg">🍽️</span>}
                                         </div>
                                         <h3 className="mb-2 text-lg font-bold text-gray-900 transition-colors group-hover:text-[#f27f0d]">
                                             {option.title}
@@ -171,7 +170,7 @@ const MenuPreferenceModal = ({ isOpen = true, initialPreference = '', onClose, o
                             }`}
                         >
                             Continue
-                            <span className="material-icons text-sm">arrow_forward</span>
+                            <ArrowRight size={16} />
                         </button>
                     </div>
                 </div>

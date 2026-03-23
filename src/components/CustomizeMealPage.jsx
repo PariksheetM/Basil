@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { imgUrl } from '../utils/imgUrl.js';
 import { CheckCircle2, ChevronRight, Headset, Search, Star } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { useCart } from '../contexts/CartContext';
+import { API_BASE_URL } from '../utils/api.js';
 
 const PACKAGE_FALLBACK = {
     id: 'royal-corporate-feast',
@@ -470,6 +472,45 @@ const inferItemType = (label = '', packageDiet = '', preference = '') => {
     return 'veg';
 };
 
+const getFoodImage = (label = '') => {
+    const l = label.toLowerCase();
+    if (l.includes('paneer lababdar') || l.includes('paneer tikka masala')) return 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('paneer tikka')) return 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('shahi paneer') || l.includes('paneer makhani')) return 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('paneer')) return 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('butter chicken') || l.includes('murgh makhani')) return 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('murgh') || l.includes('chicken tikka')) return 'https://images.unsplash.com/photo-1607532941433-304659e8198a?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('chicken')) return 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('dal makhani')) return 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('dal') || l.includes('daal')) return 'https://images.unsplash.com/photo-1546833998-877b37c2e5c6?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('biryani')) return 'https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('pulao') || l.includes('fried rice')) return 'https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('jeera rice') || l.includes('jeera') || l.includes('rice')) return 'https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('naan')) return 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('roti') || l.includes('paratha') || l.includes('bread')) return 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('raita')) return 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('salad')) return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('gulab jamun')) return 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('chocolate') || l.includes('choco')) return 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('mousse')) return 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('cake') || l.includes('cupcake')) return 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('dessert') || l.includes('sweet') || l.includes('mithai')) return 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('fruit')) return 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('sandwich')) return 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('wrap')) return 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('nugget')) return 'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('pasta')) return 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('pizza')) return 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('burger') || l.includes('slider')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('soya') || l.includes('chaap')) return 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('kebab') || l.includes('tikka') || l.includes('starter') || l.includes('platter')) return 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('drink') || l.includes('juice') || l.includes('soda') || l.includes('mocktail')) return 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('dip') || l.includes('sauce')) return 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('soup')) return 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=400&q=80';
+    if (l.includes('samosa') || l.includes('pakora') || l.includes('chaat')) return 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80';
+    return null;
+};
+
 const buildSectionsFromCustomization = (customization, packageMeta = {}, preference = '') => {
     if (!customization) {
         return null;
@@ -489,7 +530,7 @@ const buildSectionsFromCustomization = (customization, packageMeta = {}, prefere
             priceDelta: option.priceDelta || 0,
             type: inferItemType(option.label, packageMeta.diet, preference),
             defaultSelected: Boolean(option.isDefault || (!hasDefault && defaultToFirst && index === 0)),
-            image: option.image || fallbackImage,
+            image: option.image || getFoodImage(option.label) || fallbackImage,
         }));
     };
 
@@ -530,6 +571,31 @@ const buildSectionsFromCustomization = (customization, packageMeta = {}, prefere
     return sections.length ? sections : null;
 };
 
+// Build menu sections from admin-added categoryItems (meal.items structure)
+const buildSectionsFromCategoryItems = (categoryItems = [], fallbackImage = '') => {
+    if (!Array.isArray(categoryItems) || !categoryItems.length) return null;
+    const sections = categoryItems
+        .filter((cat) => cat.name && Array.isArray(cat.items) && cat.items.length)
+        .map((cat) => ({
+            id: `cat-${cat.id || cat.name}`,
+            title: cat.name,
+            helper: `${cat.items.length} Included`,
+            // Allow all items to be selected (they're all included in the plan)
+            maxSelection: cat.items.length,
+            items: cat.items.map((item) => ({
+                id: item.id || `item-${item.name}`,
+                name: item.name,
+                description: item.type === 'non-veg' ? 'Non-Veg' : item.type === 'satvik' ? 'Satvik' : 'Veg',
+                priceDelta: 0,
+                type: item.type || 'veg',
+                defaultSelected: true,
+                included: true,
+                image: item.image || fallbackImage,
+            })),
+        }));
+    return sections.length ? sections : null;
+};
+
 const formatCurrency = (value) => `₹${value.toLocaleString('en-IN')}`;
 
 export default function CustomizeMealPage() {
@@ -547,6 +613,26 @@ export default function CustomizeMealPage() {
     const packageImage = packageInfo.image || IMAGE_FALLBACK;
 
     const packageCustomization = routeState.package?.customization;
+
+    // For admin-created plans (id = "remote-N"), fetch live meal data to get categoryItems
+    const [apiFetchedCategoryItems, setApiFetchedCategoryItems] = useState(null);
+    useEffect(() => {
+        const pkgId = routeState.package?.id || '';
+        if (!pkgId.startsWith('remote-')) return;
+        const numericId = pkgId.replace('remote-', '');
+        fetch(`${API_BASE_URL}/admin/meals.php`)
+            .then((r) => r.json())
+            .then((result) => {
+                if (!result.success) return;
+                const meal = (result.data || []).find((m) => String(m.id) === String(numericId));
+                if (!meal) return;
+                const raw = meal.items;
+                if (Array.isArray(raw) && raw.length && raw[0]?.items) {
+                    setApiFetchedCategoryItems(raw);
+                }
+            })
+            .catch(() => {});
+    }, [routeState.package?.id]);
 
     const occasionName = routeState.occasionName;
     const packageSelectionsFromOccasion = routeState.packageSelections;
@@ -580,7 +666,29 @@ export default function CustomizeMealPage() {
         [packageCustomization, packageInfo.diet, packageImage, routeState.preference]
     );
 
+    // Admin-added meal plan: build sections from categoryItems
+    // Priority: live API fetch > navigate-state categoryItems > customization
+    const adminCategorySections = useMemo(() => {
+        // 1. Live-fetched items (most reliable)
+        if (apiFetchedCategoryItems) {
+            const s = buildSectionsFromCategoryItems(apiFetchedCategoryItems, packageImage);
+            if (s?.length) return s;
+        }
+        // 2. Passed through navigate state
+        const passedItems = packageInfo.categoryItems;
+        if (passedItems) {
+            const s = buildSectionsFromCategoryItems(passedItems, packageImage);
+            if (s?.length) return s;
+        }
+        return null;
+    }, [apiFetchedCategoryItems, packageInfo.categoryItems, packageImage]);
+
     const menuSections = useMemo(() => {
+        // Admin-panel sections take top priority for remote packages
+        if (adminCategorySections?.length) {
+            return adminCategorySections;
+        }
+
         if (customMenuSections?.length) {
             if (limitToVeg && !isPoojaFlow) {
                 const vegOnly = filterSectionsByDiet(customMenuSections, ['veg', 'satvik']);
@@ -598,7 +706,7 @@ export default function CustomizeMealPage() {
         }
 
         return DEFAULT_MENU_SECTIONS;
-    }, [customMenuSections, isPoojaFlow, limitToVeg]);
+    }, [customMenuSections, adminCategorySections, isPoojaFlow, limitToVeg]);
 
     const goHome = () => navigate('/home');
     const goToOccasionMenu = () => {
@@ -755,7 +863,7 @@ export default function CustomizeMealPage() {
                     <aside className="lg:col-span-4 space-y-6">
                         <div className="sticky top-24 space-y-6">
                             <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-xl">
-                                <div className="h-64 bg-cover bg-center relative" style={{ backgroundImage: `url(${packageImage})` }}>
+                                <div className="h-64 bg-cover bg-center relative" style={{ backgroundImage: `url(${imgUrl(packageImage)})` }}>
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#221610]/80 to-transparent"></div>
                                     <div className="absolute bottom-4 left-4">
                                         <span className="bg-[#ec5b13] text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Premium Selection</span>
@@ -832,7 +940,7 @@ export default function CustomizeMealPage() {
                                                 className={`group relative bg-white border ${isSelected ? 'border-2 border-[#ec5b13] shadow-lg' : 'border-slate-200 hover:border-[#ec5b13]/50'} rounded-xl p-4 transition-all text-left`}
                                             >
                                                 <div className="flex gap-4">
-                                                    <div className="w-20 h-20 rounded-lg bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${cardImage})` }}></div>
+                                                    <div className="w-20 h-20 rounded-lg bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${imgUrl(cardImage)})` }}></div>
                                                     <div className="flex-1">
                                                         <div className="flex justify-between items-start gap-2">
                                                             <h4 className="font-bold text-slate-900">{item.name}</h4>

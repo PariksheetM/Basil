@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { imgUrl } from '../utils/imgUrl.js';
 import { ArrowLeft, ShoppingCart, User, PartyPopper, Briefcase, Heart, Flower2, Phone, MessageCircle, HelpCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
@@ -147,7 +148,7 @@ const BuffetPage = () => {
                             <div className="flex gap-4">
                                 {/* Image */}
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden flex-shrink-0 relative">
-                                    <img src={occasion.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={occasion.title} />
+                                    <img src={imgUrl(occasion.image)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={occasion.title} />
                                 </div>
 
                                 {/* Content */}
@@ -218,7 +219,7 @@ const BuffetPage = () => {
                         <div className="p-6 text-center">
                             <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <div className="p-2 bg-green-100 rounded-full">
-                                    <img src={selectedOccasion.image} className="w-8 h-8 object-cover rounded-full" alt="" />
+                                    <img src={imgUrl(selectedOccasion.image)} className="w-8 h-8 object-cover rounded-full" alt="" />
                                 </div>
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Select Food Preference</h3>

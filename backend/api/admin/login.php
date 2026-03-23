@@ -2,12 +2,28 @@
 // Admin-only login endpoint
 $dbPath = __DIR__ . '/../../database/food_ordering.db';
 
-$corsOrigin = 'http://localhost:5173';
-header("Access-Control-Allow-Origin: " . $corsOrigin);
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Credentials: true");
+// CORS: allow local dev and deployed frontend
+$allowedOrigins = [
+    'http://localhost:5173',
+    'https://basil-five.vercel.app',
+    'https://qsr.catalystsolutions.eco',
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header('Vary: Origin');
+}
+
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);

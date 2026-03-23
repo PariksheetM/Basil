@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, ShoppingCart, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { imgUrl } from '../utils/imgUrl.js';
 
 const BowlPage = () => {
     const navigate = useNavigate();
@@ -81,7 +82,7 @@ const BowlPage = () => {
                                 className="flex flex-col items-center gap-2 cursor-pointer min-w-[80px] group"
                             >
                                 <div className={`w-20 h-20 rounded-2xl overflow-hidden relative shadow-sm border transition-all duration-300 ${item.active ? 'border-green-600 ring-2 ring-green-600 scale-105' : 'border-gray-100 group-hover:border-gray-300'}`}>
-                                    <img src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={item.name} />
+                                    <img src={imgUrl(item.img)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={item.name} />
                                     <div className="absolute bottom-1.5 left-1.5 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md">
                                         Starts @ ₹{item.price}
                                     </div>
@@ -105,7 +106,7 @@ const BowlPage = () => {
                     {bowls.map((box) => (
                         <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow duration-300 group">
                             <div className="relative h-56 overflow-hidden">
-                                <img src={box.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={box.name} />
+                                <img src={imgUrl(box.image)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={box.name} />
                                 <span className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold shadow-md">
                                     {box.itemsCount} Items
                                 </span>
@@ -126,7 +127,7 @@ const BowlPage = () => {
                                         {box.items.map((item, index) => (
                                             <div key={index} className="text-center flex flex-col items-center gap-2 min-w-[60px]">
                                                 <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 shadow-sm">
-                                                    <img src={item.img} className="w-full h-full object-cover scale-150" alt={item.name} />
+                                                    <img src={imgUrl(item.img)} className="w-full h-full object-cover scale-150" alt={item.name} />
                                                 </div>
                                                 <span className="text-[10px] text-gray-500 font-medium leading-tight">{item.name}</span>
                                             </div>

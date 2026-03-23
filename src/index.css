@@ -9,6 +9,13 @@ body,
   margin: 0;
   padding: 0;
   font-family: 'Public Sans', 'Inter', sans-serif;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
 }
 
 :root {

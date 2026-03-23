@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UtensilsCrossed, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { imgUrl } from '../utils/imgUrl.js';
 import AuthService from '../services/authService';
 
 const LoginPage = () => {
@@ -76,7 +77,7 @@ const LoginPage = () => {
     return (
         <div
             className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
-            style={{ backgroundImage: "url('/bg-restaurant.png')" }}
+            style={{ backgroundImage: `url('${imgUrl('/bg-restaurant.png')}')` }}
         >
             {/* Overlay for better readability if needed/requested, but design shows clearness. 
           The provided bg is already blurred. We can add a slight dark/light overlay if contrast is low.
@@ -87,7 +88,7 @@ const LoginPage = () => {
             <div className="relative w-full max-w-[420px] bg-white rounded-3xl shadow-2xl p-8 md:p-10 animate-fade-in-up">
                 {/* Header Icon */}
                 <div className="flex justify-center mb-6">
-                    <img src="/logo.webp" alt="Logo" className="h-9 w-30" />
+                    <img src={imgUrl('/logo.webp')} alt="Logo" className="h-9 w-30" />
                 </div>
 
                 {/* Title */}

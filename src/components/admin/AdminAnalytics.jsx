@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../utils/api.js';
 import { TrendingUp, DollarSign, ShoppingBag, Users, Calendar, Award } from 'lucide-react';
 
 const AdminAnalytics = () => {
@@ -17,7 +18,7 @@ const AdminAnalytics = () => {
 
     const fetchAnalytics = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/admin/analytics.php');
+            const response = await fetch(`${API_BASE_URL}/admin/analytics.php`);
             const result = await response.json();
             if (result.success) {
                 setAnalyticsData(result.data);
@@ -174,7 +175,7 @@ const AdminAnalytics = () => {
                                         </div>
                                         {index === 0 && (
                                             <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-xs">
-                                                👑
+                                                ðŸ‘‘
                                             </div>
                                         )}
                                     </div>

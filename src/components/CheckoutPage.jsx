@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
+import { API_BASE_URL } from '../utils/api.js';
 import {
     AlertCircle,
     ArrowLeft,
@@ -27,7 +28,7 @@ import BrandLogo from './BrandLogo';
 const MEAL_FALLBACK_IMG = 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=800&q=80';
 
 const PAYMENT_METHODS = [
-    { id: 'card', label: 'Corporate Card', hint: 'Visa •••• 4242', icon: CreditCard },
+    { id: 'card', label: 'Corporate Card', hint: 'Visa â€¢â€¢â€¢â€¢ 4242', icon: CreditCard },
     { id: 'netbanking', label: 'Netbanking', hint: 'Instant confirmation', icon: Building2 },
     { id: 'upi', label: 'UPI Autopay', hint: 'Monthly invoicing', icon: ShieldCheck },
 ];
@@ -188,7 +189,7 @@ const CheckoutPage = () => {
 
         const postOrder = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/create_order.php', {
+                const response = await fetch(`${API_BASE_URL}/create_order.php`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

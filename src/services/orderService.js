@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+import { API_BASE_URL } from '../utils/api.js';
 
 class OrderService {
     static getAuthHeader() {

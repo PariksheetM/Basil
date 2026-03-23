@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, ShoppingCart, Filter, Plus, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { imgUrl } from '../utils/imgUrl.js';
 import MenuPreferenceModal from './MenuPreferenceModal';
 import BrandLogo from './BrandLogo';
 
@@ -62,7 +63,7 @@ const SnackBoxPage = () => {
                             className={`flex flex-col items-center gap-1.5 cursor-pointer min-w-[80px] group opacity-60 hover:opacity-100 transition-opacity`}
                         >
                             <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group-hover:border-gray-300 transition-all">
-                                <img src="/meal-box-salad.png" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Meal Box" />
+                                <img src={imgUrl('/meal-box-salad.png')} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Meal Box" />
                             </div>
                             <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors">MealBox</span>
                         </div>
@@ -73,7 +74,7 @@ const SnackBoxPage = () => {
                             className={`flex flex-col items-center gap-1.5 cursor-pointer min-w-[80px] group`}
                         >
                             <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm border border-green-600 ring-2 ring-green-600 relative scale-105 transition-all">
-                                <img src="/snack-box-coffee.png" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Snack Box" />
+                                <img src={imgUrl('/snack-box-coffee.png')} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Snack Box" />
                             </div>
                             <span className="text-xs font-bold text-gray-900 transition-colors">SnackBox</span>
                         </div>
@@ -84,7 +85,7 @@ const SnackBoxPage = () => {
                             className="flex flex-col items-center gap-1.5 cursor-pointer min-w-[80px] group opacity-60 hover:opacity-100 transition-opacity"
                         >
                             <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group-hover:border-gray-300 transition-all">
-                                <img src="/fried-rice.png" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Bowls" />
+                                <img src={imgUrl('/fried-rice.png')} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Bowls" />
                             </div>
                             <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors">Bowls</span>
                         </div>
@@ -106,7 +107,7 @@ const SnackBoxPage = () => {
                     {/* Card 1: Classical Indian Snack */}
                     <div onClick={handleCardClick} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all group">
                         <div className="relative h-56 overflow-hidden">
-                            <img src="/samosa-juice.png" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Samosa Juice" />
+                            <img src={imgUrl('/samosa-juice.png')} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Samosa Juice" />
                             <span className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
                                 2 Items
                             </span>
@@ -126,7 +127,7 @@ const SnackBoxPage = () => {
                                 <div className="flex justify-start gap-8 px-2">
                                     <div className="text-center flex flex-col items-center gap-2">
                                         <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 shadow-sm">
-                                            <img src="/samosa-juice.png" className="w-full h-full object-cover scale-150" alt="Samosa" />
+                                            <img src={imgUrl('/samosa-juice.png')} className="w-full h-full object-cover scale-150" alt="Samosa" />
                                         </div>
                                         <span className="text-[10px] text-gray-500 font-medium leading-tight">2 Crispy<br />Samosas</span>
                                     </div>
@@ -144,7 +145,7 @@ const SnackBoxPage = () => {
                     {/* Card 2: Western Snack Combo */}
                     <div onClick={handleCardClick} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all group">
                         <div className="relative h-56 overflow-hidden">
-                            <img src="/fries-juice.png" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Fries Juice" />
+                            <img src={imgUrl('/fries-juice.png')} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Fries Juice" />
                             <span className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
                                 2 Items
                             </span>
@@ -164,7 +165,7 @@ const SnackBoxPage = () => {
                                 <div className="flex justify-start gap-8 px-2">
                                     <div className="text-center flex flex-col items-center gap-2">
                                         <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 shadow-sm">
-                                            <img src="/fries-juice.png" className="w-full h-full object-cover scale-150" alt="Fries" />
+                                            <img src={imgUrl('/fries-juice.png')} className="w-full h-full object-cover scale-150" alt="Fries" />
                                         </div>
                                         <span className="text-[10px] text-gray-500 font-medium leading-tight">Peri Peri<br />Fries</span>
                                     </div>
@@ -182,7 +183,7 @@ const SnackBoxPage = () => {
                     {/* Card 3: Office Coffee Break */}
                     <div onClick={handleCardClick} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all group">
                         <div className="relative h-56 overflow-hidden">
-                            <img src="/sandwich-coffee.png" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Coffee Break" />
+                            <img src={imgUrl('/sandwich-coffee.png')} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Coffee Break" />
                             <span className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
                                 2 Items
                             </span>
@@ -202,7 +203,7 @@ const SnackBoxPage = () => {
                                 <div className="flex justify-start gap-8 px-2">
                                     <div className="text-center flex flex-col items-center gap-2">
                                         <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 shadow-sm">
-                                            <img src="/sandwich-coffee.png" className="w-full h-full object-cover scale-150" alt="Sandwich" />
+                                            <img src={imgUrl('/sandwich-coffee.png')} className="w-full h-full object-cover scale-150" alt="Sandwich" />
                                         </div>
                                         <span className="text-[10px] text-gray-500 font-medium leading-tight">1 Club<br />Sandwich</span>
                                     </div>

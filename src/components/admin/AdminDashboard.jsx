@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../utils/api.js';
 import { TrendingUp, ShoppingBag, DollarSign, Clock, Users, Star, ArrowUpRight } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -16,7 +17,7 @@ const AdminDashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/admin/dashboard.php');
+            const response = await fetch(`${API_BASE_URL}/admin/dashboard.php`);
             const result = await response.json();
             if (result.success) {
                 setDashboardData(result.data);
@@ -146,7 +147,7 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="text-sm text-slate-700">{order.occasion || '—'}</td>
+                                    <td className="text-sm text-slate-700">{order.occasion || '₹€”'}</td>
                                     <td className="font-semibold">{formatCurrency(order.total_amount)}</td>
                                     <td>
                                         <span className={statusClass(order.status)}>{order.status}</span>

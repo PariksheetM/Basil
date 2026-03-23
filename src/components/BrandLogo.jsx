@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { imgUrl } from '../utils/imgUrl.js';
 
 const BrandLogo = ({
     to = '/home',
@@ -11,7 +12,7 @@ const BrandLogo = ({
 }) => {
     return (
         <Link to={to} aria-label="Catalyst" className={`flex items-center gap-3 ${className}`}>
-            <img src="/logo.webp" alt="Catalyst" className={`${imgClassName} object-contain`} />
+            <img src={imgUrl('/logo.webp')} alt="Catalyst" className={`${imgClassName} object-contain`} />
             <span className="sr-only">Catalyst</span>
             {showWordmark && (
                 <span className={labelClassName}>

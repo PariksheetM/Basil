@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import HomePage from './components/HomePage';
@@ -15,7 +15,6 @@ import BowlPage from './components/BowlPage';
 import BuffetPage from './components/BuffetPage';
 import OrdersPage from './components/OrdersPage';
 import AccountPage from './components/AccountPage';
-import ProtectedRoute from './components/ProtectedRoute';
 import { CartProvider } from './contexts/CartContext';
 
 // Admin Components
@@ -32,24 +31,26 @@ import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 function App() {
     return (
         <CartProvider>
-            <BrowserRouter>
+            <BrowserRouter basename="/fooddash">
                 <Routes>
-                    <Route path="/" element={<LoginPage />} />
+                    {/* Redirect root to home � no login required */}
+                    <Route path="/" element={<Navigate to="/home" replace />} />
+                    <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />
-                    <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                    <Route path="/select-city" element={<ProtectedRoute><CitySelectionPage /></ProtectedRoute>} />
-                    <Route path="/select-occasion" element={<ProtectedRoute><OccasionSelectionPage /></ProtectedRoute>} />
-                    <Route path="/occasion-menu" element={<ProtectedRoute><OccasionMenuPage /></ProtectedRoute>} />
-                    <Route path="/meal-box" element={<ProtectedRoute><MealBoxPage /></ProtectedRoute>} />
-                    <Route path="/snack-box" element={<ProtectedRoute><SnackBoxPage /></ProtectedRoute>} />
-                    <Route path="/bowls" element={<ProtectedRoute><BowlPage /></ProtectedRoute>} />
-                    <Route path="/buffet" element={<ProtectedRoute><BuffetPage /></ProtectedRoute>} />
-                    <Route path="/customize-meal" element={<ProtectedRoute><CustomizeMealPage /></ProtectedRoute>} />
-                    <Route path="/order-details" element={<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>} />
-                    <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-                    <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-                    <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-                    
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/select-city" element={<CitySelectionPage />} />
+                    <Route path="/select-occasion" element={<OccasionSelectionPage />} />
+                    <Route path="/occasion-menu" element={<OccasionMenuPage />} />
+                    <Route path="/meal-box" element={<MealBoxPage />} />
+                    <Route path="/snack-box" element={<SnackBoxPage />} />
+                    <Route path="/bowls" element={<BowlPage />} />
+                    <Route path="/buffet" element={<BuffetPage />} />
+                    <Route path="/customize-meal" element={<CustomizeMealPage />} />
+                    <Route path="/order-details" element={<OrderDetailsPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/account" element={<AccountPage />} />
+
                     {/* Admin Routes */}
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>

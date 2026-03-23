@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { CheckCircle, ArrowRight, Minus } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api.js';
 import BrandLogo from './BrandLogo';
 
 const dietBadgeStyles = {
@@ -206,7 +208,7 @@ const mealPackagesByOccasion = {
                             partyType: 'either',
                             venue: 'either',
                             liveCounter: false,
-                            features: ['Sandwich, Chips, Juice, Chocolate', 'Cupcake + Mini sweet', 'Price bands: ₹99 – ₹299 per box'],
+                            features: ['Sandwich, Chips, Juice, Chocolate', 'Cupcake + Mini sweet', 'Price bands: ₹99 — ₹299 per box'],
                             ctaLabel: 'Customize',
                             ctaVariant: 'outline',
                             isAvailable: true,
@@ -535,7 +537,7 @@ const mealPackagesByOccasion = {
                     ],
                     addOns: [
                         { id: 'luxury-kebab', label: 'Live Seekh Kebab Station', priceDelta: 110, description: 'Chef-led grilling' },
-                        { id: 'luxury-dessert', label: 'Dessert Flaming Counter', priceDelta: 140, description: 'Flambé showcase' },
+                        { id: 'luxury-dessert', label: 'Dessert Flaming Counter', priceDelta: 140, description: 'FlambÃ© showcase' },
                     ],
                 },
             },
@@ -1102,7 +1104,7 @@ const OccasionMenuPage = () => {
     useEffect(() => {
         const loadMeals = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/admin/meals.php');
+                const response = await fetch(`${API_BASE_URL}/admin/meals.php`);
                 const result = await response.json();
                 if (result.success) {
                     setApiMeals(result.data || []);
@@ -1132,8 +1134,6 @@ const OccasionMenuPage = () => {
         setOccasionKey(resolvedOccasion);
     }, [location.state, navigate]);
 
-    const occasionDataStatic = occasionKey ? mealPackagesByOccasion[occasionKey] : null;
-
     const apiPackages = useMemo(() => {
         if (!occasionKey || !apiMeals.length) return [];
         return apiMeals
@@ -1155,24 +1155,35 @@ const OccasionMenuPage = () => {
                     ctaLabel: 'Customize',
                     ctaVariant: 'primary',
                     isAvailable: true,
+                    categoryItems: Array.isArray(meal.items) && meal.items.length && meal.items[0]?.items
+                        ? meal.items
+                        : null,
                     customization: { basePrice: budgetPrice },
                 };
             });
     }, [apiMeals, occasionKey]);
 
-    const apiOccasionLabel = apiMeals.find((meal) => slugify(meal.occasion) === occasionKey || meal.occasion === occasionKey)?.occasion;
-    const occasionDataDynamic = apiPackages.length
-        ? {
-              displayName: apiOccasionLabel || occasionKey,
-              description: 'Curated menus for your occasion',
-              defaultGuests: 50,
-              defaultBudget: apiPackages[0]?.price || 400,
-              tags: ['Custom'],
-              packages: apiPackages,
-          }
-        : null;
-
-    const occasionData = occasionDataStatic || occasionDataDynamic;
+    // Merge static + API packages so admin-added plans always appear (even for known occasions)
+    const occasionData = useMemo(() => {
+        const staticData = occasionKey ? mealPackagesByOccasion[occasionKey] : null;
+        const dynamicData = apiPackages.length
+            ? {
+                  displayName: apiMeals.find((m) => slugify(m.occasion) === occasionKey || m.occasion === occasionKey)?.occasion || occasionKey,
+                  description: 'Curated menus for your occasion',
+                  defaultGuests: 50,
+                  defaultBudget: apiPackages[0]?.price || 400,
+                  tags: ['Custom'],
+                  packages: apiPackages,
+              }
+            : null;
+        if (!staticData && !dynamicData) return null;
+        if (!staticData) return dynamicData;
+        if (!apiPackages.length) return staticData;
+        return {
+            ...staticData,
+            packages: [...apiPackages, ...staticData.packages],
+        };
+    }, [occasionKey, apiPackages, apiMeals]);
     const packages = occasionData?.packages ?? [];
 
     useEffect(() => {
@@ -1197,7 +1208,7 @@ const OccasionMenuPage = () => {
         setLiveCounterFilter('all');
 
         const firstAvailable = packages.find((pkg) => pkg.isAvailable !== false) ?? packages[0];
-        setSelectedPackageId(firstAvailable?.id ?? '');
+        setSelectedPackageId('');
     }, [occasionData, packages]);
 
     const cuisineFilters = useMemo(() => {
@@ -1282,7 +1293,7 @@ const OccasionMenuPage = () => {
 
         const exists = filteredPackages.some((pkg) => pkg.id === selectedPackageId);
         if (!exists) {
-            setSelectedPackageId(filteredPackages[0].id);
+            setSelectedPackageId('');
         }
     }, [filteredPackages, selectedPackageId]);
 
@@ -1309,16 +1320,16 @@ const OccasionMenuPage = () => {
             return;
         }
 
-        const defaultProtein = customization.proteins.find((opt) => opt.isDefault) || customization.proteins[0];
-        const defaultBase = customization.bases.find((opt) => opt.isDefault) || customization.bases[0];
+        const defaultProtein = customization.proteins?.find((opt) => opt.isDefault) || customization.proteins?.[0];
+        const defaultBase = customization.bases?.find((opt) => opt.isDefault) || customization.bases?.[0];
 
         setSelectedProteinId(defaultProtein?.id ?? '');
         setSelectedBaseId(defaultBase?.id ?? '');
         setSelectedAddOnIds([]);
     }, [selectedPackage]);
 
-    const selectedProtein = selectedPackage?.customization?.proteins.find((opt) => opt.id === selectedProteinId);
-    const selectedBase = selectedPackage?.customization?.bases.find((opt) => opt.id === selectedBaseId);
+    const selectedProtein = selectedPackage?.customization?.proteins?.find((opt) => opt.id === selectedProteinId);
+    const selectedBase = selectedPackage?.customization?.bases?.find((opt) => opt.id === selectedBaseId);
     const addOnOptions = selectedPackage?.customization?.addOns ?? [];
     const selectedAddOns = addOnOptions.filter((opt) => selectedAddOnIds.includes(opt.id));
 
@@ -1456,6 +1467,7 @@ const OccasionMenuPage = () => {
                     features: pkg.features,
                     bestFor: pkg.bestFor,
                     badge: pkg.badge,
+                    categoryItems: pkg.categoryItems ?? null,
                     customization: pkg.customization,
                 },
                 packageSelections,
@@ -1477,21 +1489,7 @@ const OccasionMenuPage = () => {
                         labelClassName="hidden"
                     />
                 </div>
-                <div className="hidden md:flex items-center gap-8 text-sm font-normal text-slate-600">
-                    <button type="button" className="hover:text-slate-900 transition-colors" onClick={goToEvents}>Home</button>
-                    <button type="button" className="text-slate-900 font-medium" disabled>
-                        Menus
-                    </button>
-                    <button type="button" className="hover:text-slate-900 transition-colors">Corporate</button>
-                    <button type="button" className="hover:text-slate-900 transition-colors">Events</button>
-                </div>
                 <div className="ml-auto flex items-center gap-3">
-                    <button
-                        type="button"
-                        className="px-5 py-2 bg-[#c9a961] text-white text-sm font-medium rounded hover:bg-[#b89751] transition-colors"
-                    >
-                        Request Quote
-                    </button>
                     <button
                         type="button"
                         className="px-5 py-2 text-slate-700 text-sm font-medium hover:text-slate-900 transition-colors"
@@ -1513,7 +1511,7 @@ const OccasionMenuPage = () => {
                                         onClick={() => adjustGuests(-1)}
                                         className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition"
                                     >
-                                        −
+                                        <Minus size={16} />
                                     </button>
                                     <span className="w-16 text-center font-semibold text-slate-900 border-x border-slate-300">{guestCount}</span>
                                     <button
@@ -1665,13 +1663,17 @@ const OccasionMenuPage = () => {
                                                 key={pkg.id}
                                                 role="button"
                                                 tabIndex={pkg.isAvailable ? 0 : -1}
-                                                onClick={() => pkg.isAvailable && handleProceedToCustomize(pkg)}
+                                                onClick={() => pkg.isAvailable && setSelectedPackageId(pkg.id)}
                                                 onKeyDown={(e) =>
                                                     pkg.isAvailable && (e.key === 'Enter' || e.key === ' ')
-                                                        ? handleProceedToCustomize(pkg)
+                                                        ? setSelectedPackageId(pkg.id)
                                                         : null
                                                 }
-                                                className="bg-white rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group flex flex-col h-full border border-slate-200"
+                                                className={`bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full border-2 ${
+                                                    isSelected
+                                                        ? 'border-[#c9a961] shadow-lg shadow-[#c9a961]/20'
+                                                        : 'border-slate-200'
+                                                }`}
                                             >
                                                 <div className="relative h-56 bg-slate-100 overflow-hidden">
                                                     <img
@@ -1704,7 +1706,7 @@ const OccasionMenuPage = () => {
                                                         <ul className="text-sm space-y-2 text-slate-700">
                                                             {pkg.features.map((feature) => (
                                                                 <li key={feature} className="flex items-start gap-2">
-                                                                    <span className="material-icons text-[16px] text-[#c9a961] mt-0.5">check_circle</span>
+                                                                    <CheckCircle size={16} className="text-[#c9a961] mt-0.5 flex-shrink-0" />
                                                                     <span className="flex-1">{feature}</span>
                                                                 </li>
                                                             ))}
@@ -1717,15 +1719,17 @@ const OccasionMenuPage = () => {
                                                         </div>
                                                         <button
                                                             type="button"
-                                                            onClick={() => pkg.isAvailable && handleProceedToCustomize(pkg)}
+                                                            onClick={() => pkg.isAvailable && setSelectedPackageId(pkg.id)}
                                                             disabled={!pkg.isAvailable}
                                                             className={`py-2 px-5 rounded font-medium text-sm transition-all ${
-                                                                pkg.isAvailable
-                                                                    ? 'bg-[#c9a961] text-white hover:bg-[#b89751] shadow-md'
-                                                                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                                !pkg.isAvailable
+                                                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                                    : pkg.id === selectedPackageId
+                                                                    ? 'bg-emerald-600 text-white shadow-md'
+                                                                    : 'bg-[#c9a961] text-white hover:bg-[#b89751] shadow-md'
                                                             }`}
                                                         >
-                                                            Select
+                                                            {pkg.id === selectedPackageId ? '✓ Added' : 'Select'}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1735,27 +1739,22 @@ const OccasionMenuPage = () => {
                             </div>
                         </div>
                         <div className="fixed bottom-8 right-8 z-50">
+                            {selectedPackage && (
                             <div className="bg-slate-900 text-white rounded-full shadow-2xl px-6 py-3 flex items-center gap-4">
-                                {selectedPackage && (
-                                    <div className="text-sm">
-                                        <span className="uppercase text-xs text-slate-400 tracking-wide">ESTIMATE ({guestCount} GUESTS)</span>
-                                        <div className="font-semibold">{itemsAddedLabel}</div>
-                                    </div>
-                                )}
+                                <div className="text-sm">
+                                    <span className="uppercase text-xs text-slate-400 tracking-wide">ESTIMATE ({guestCount} GUESTS)</span>
+                                    <div className="font-semibold">{itemsAddedLabel}</div>
+                                </div>
                                 <button
                                     type="button"
                                     onClick={() => handleProceedToCustomize()}
-                                    disabled={!selectedPackage}
-                                    className={`px-6 py-2 rounded-full font-medium text-sm transition-all flex items-center gap-2 ${
-                                        selectedPackage
-                                            ? 'bg-[#c9a961] hover:bg-[#b89751] text-white'
-                                            : 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                                    }`}
+                                    className="px-6 py-2 rounded-full font-medium text-sm transition-all flex items-center gap-2 bg-[#c9a961] hover:bg-[#b89751] text-white"
                                 >
                                     Proceed to Checkout
-                                    <span className="material-icons text-sm">arrow_forward</span>
+                                    <ArrowRight size={16} />
                                 </button>
                             </div>
+                            )}
                         </div>
                     </div>
                 </main>

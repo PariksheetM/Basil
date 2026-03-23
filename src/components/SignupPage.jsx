@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, UtensilsCrossed } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { imgUrl } from '../utils/imgUrl.js';
 import AuthService from '../services/authService';
 
 const SignupPage = () => {
@@ -43,14 +44,14 @@ const SignupPage = () => {
     return (
         <div
             className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
-            style={{ backgroundImage: "url('/bg-restaurant.png')" }}
+            style={{ backgroundImage: `url('${imgUrl('/bg-restaurant.png')}')` }}
         >
             <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
 
             <div className="relative w-full max-w-[420px] bg-white rounded-3xl shadow-2xl p-6 md:p-10 animate-fade-in-up">
                 {/* Header Icon */}
                 <div className="flex justify-center mb-6">
-                    <img src="/logo.webp" alt="Logo" className="h-9 w-30" />
+                    <img src={imgUrl('/logo.webp')} alt="Logo" className="h-9 w-30" />
                 </div>
 
                 {/* Title */}

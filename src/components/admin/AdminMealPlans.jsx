@@ -1,6 +1,33 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Copy, Star, X, Save, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Copy, Star, X, Save, Filter, Clipboard } from 'lucide-react';
+import { API_BASE_URL } from '../../utils/api.js';
+
+const PRESET_CATEGORIES = [
+    { name: 'Starters',     icon: 'ðŸ¥—' },
+    { name: 'Main Course',  icon: 'ðŸ›' },
+    { name: 'Breads/Bases', icon: 'ðŸ«“' },
+    { name: 'Rice & Biryani', icon: 'ðŸš' },
+    { name: 'Drinks',       icon: 'ðŸ¥¤' },
+    { name: 'Desserts',     icon: 'ðŸ®' },
+    { name: 'Snacks',       icon: 'ðŸ¥¨' },
+    { name: 'Salads',       icon: 'ðŸ¥™' },
+];
+
+const getCategoryIcon = (name = '') => {
+    const n = name.toLowerCase();
+    if (n.includes('starter') || n.includes('appetizer')) return 'ðŸ¥—';
+    if (n.includes('main') || n.includes('curry') || n.includes('gravy')) return 'ðŸ›';
+    if (n.includes('bread') || n.includes('base') || n.includes('roti') || n.includes('naan')) return 'ðŸ«“';
+    if (n.includes('rice') || n.includes('biryani') || n.includes('pulao')) return 'ðŸš';
+    if (n.includes('drink') || n.includes('beverage') || n.includes('juice') || n.includes('sherbet')) return 'ðŸ¥¤';
+    if (n.includes('dessert') || n.includes('sweet') || n.includes('ice cream')) return 'ðŸ®';
+    if (n.includes('snack') || n.includes('fries')) return 'ðŸ¥¨';
+    if (n.includes('salad') || n.includes('raita')) return 'ðŸ¥™';
+    if (n.includes('soup')) return 'ðŸ²';
+    if (n.includes('include')) return '✅';
+    return 'ðŸ½ï¸';
+};
 
 const AdminMealPlans = () => {
     const navigate = useNavigate();
@@ -53,7 +80,7 @@ const AdminMealPlans = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/admin/occasions.php', {
+            const response = await fetch(`${API_BASE_URL}/admin/occasions.php`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -81,7 +108,7 @@ const AdminMealPlans = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+            const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -110,12 +137,10 @@ const AdminMealPlans = () => {
         setEditingMeal(null);
         setFormData({
             name: '',
-            occasion: 'corporate',
+            occasion: occasions[0]?.value || 'corporate',
             price: '',
             type: 'veg',
-            categoryItems: [
-                { id: 'cat-1', name: 'Includes', items: [{ id: 'item-1', name: '', type: 'veg', image: '' }] },
-            ],
+            categoryItems: [],
             image: '',
             cuisine: 'Multi-cuisine',
             recommended: false,
@@ -168,7 +193,7 @@ const AdminMealPlans = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+                const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -191,7 +216,7 @@ const AdminMealPlans = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+                const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -223,7 +248,7 @@ const AdminMealPlans = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+                const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -264,7 +289,7 @@ const AdminMealPlans = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+            const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -295,7 +320,7 @@ const AdminMealPlans = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+                const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -334,7 +359,7 @@ const AdminMealPlans = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:8000/api/admin/meals.php', {
+                const response = await fetch(`${API_BASE_URL}/admin/meals.php`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -404,12 +429,98 @@ const AdminMealPlans = () => {
         }));
     };
 
+    // ₹”€₹”€ Clipboard paste helpers ₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€
+    const readImageFromClipboard = async (onImage, onText) => {
+        try {
+            if (navigator.clipboard && navigator.clipboard.read) {
+                const clipItems = await navigator.clipboard.read();
+                for (const ci of clipItems) {
+                    const imgType = ci.types.find((t) => t.startsWith('image/'));
+                    if (imgType) {
+                        const blob = await ci.getType(imgType);
+                        const reader = new FileReader();
+                        reader.onload = (ev) => onImage(ev.target.result);
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                    if (ci.types.includes('text/plain')) {
+                        const blob = await ci.getType('text/plain');
+                        const text = await blob.text();
+                        onText(text.trim());
+                        return;
+                    }
+                }
+            } else {
+                const text = await navigator.clipboard.readText();
+                if (text) onText(text.trim());
+            }
+        } catch (err) {
+            console.error('Clipboard read failed:', err);
+        }
+    };
+
+    const handleItemImagePasteBtn = (categoryId, itemId) => {
+        readImageFromClipboard(
+            (dataUrl) => updateItemField(categoryId, itemId, 'image', dataUrl),
+            (text) => updateItemField(categoryId, itemId, 'image', text)
+        );
+    };
+
+    const handleItemImagePasteEvent = (e, categoryId, itemId) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (const ci of items) {
+            if (ci.type.startsWith('image/')) {
+                e.preventDefault();
+                const blob = ci.getAsFile();
+                const reader = new FileReader();
+                reader.onload = (ev) => updateItemField(categoryId, itemId, 'image', ev.target.result);
+                reader.readAsDataURL(blob);
+                return;
+            }
+        }
+    };
+
+    const handleMainImagePasteBtn = () => {
+        readImageFromClipboard(
+            (dataUrl) => setFormData((prev) => ({ ...prev, image: dataUrl })),
+            (text) => setFormData((prev) => ({ ...prev, image: text }))
+        );
+    };
+
+    const handleMainImagePasteEvent = (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (const ci of items) {
+            if (ci.type.startsWith('image/')) {
+                e.preventDefault();
+                const blob = ci.getAsFile();
+                const reader = new FileReader();
+                reader.onload = (ev) => setFormData((prev) => ({ ...prev, image: ev.target.result }));
+                reader.readAsDataURL(blob);
+                return;
+            }
+        }
+    };
+    // ₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€
+
+    // ₹”€₹”€₹”€ preset & category helpers ₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€₹”€
+    const addPresetCategory = (name) => {
+        setFormData((prev) => ({
+            ...prev,
+            categoryItems: [
+                ...prev.categoryItems,
+                { id: `cat-${Date.now()}`, name, items: [{ id: `item-${Date.now()}`, name: '', type: 'veg', image: '' }] },
+            ],
+        }));
+    };
+
     const addCategory = () => {
         setFormData((prev) => ({
             ...prev,
             categoryItems: [
                 ...prev.categoryItems,
-                { id: `cat-${Date.now()}`, name: 'New Category', items: [{ id: `item-${Date.now()}`, name: '', type: 'veg', image: '' }] },
+                { id: `cat-${Date.now()}`, name: '', items: [{ id: `item-${Date.now()}`, name: '', type: 'veg', image: '' }] },
             ],
         }));
     };
@@ -446,7 +557,10 @@ const AdminMealPlans = () => {
         }));
     };
 
-    const filteredMeals = meals.filter((meal) => occasionFilter === 'all' || meal.occasion === occasionFilter);
+    const filteredMeals = meals.filter((meal) =>
+        occasionFilter === 'all' ||
+        (meal.occasion || '').toLowerCase() === occasionFilter.toLowerCase()
+    );
 
     const getPriceTier = (price) => {
         const numeric = Number(price) || 0;
@@ -515,7 +629,7 @@ const AdminMealPlans = () => {
                                 try {
                                     const token = localStorage.getItem('session_token');
                                     if (!token) { navigate('/admin/login'); return; }
-                                    const response = await fetch('http://localhost:8000/api/admin/occasions.php', {
+                                    const response = await fetch(`${API_BASE_URL}/admin/occasions.php`, {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
@@ -632,13 +746,13 @@ const AdminMealPlans = () => {
                                             onClick={() => toggleRecommended(meal.id)}
                                             className={`admin-chip ${meal.recommended ? 'primary' : ''} flex-1 justify-center`}
                                         >
-                                            {meal.recommended ? '✓ Recommended' : 'Set Recommended'}
+                                            {meal.recommended ? '₹œ“ Recommended' : 'Set Recommended'}
                                         </button>
                                         <button
                                             onClick={() => togglePopular(meal.id)}
                                             className={`admin-chip flex-1 justify-center ${meal.popular ? 'primary' : ''}`}
                                         >
-                                            {meal.popular ? '★ Popular' : 'Set Popular'}
+                                            {meal.popular ? '₹˜… Popular' : 'Set Popular'}
                                         </button>
                                     </div>
                                 </div>
@@ -735,7 +849,7 @@ const AdminMealPlans = () => {
                                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                             className="w-4 h-4 text-green-500"
                                         />
-                                        <span className="text-gray-700 dark:text-gray-300">🟢 Vegetarian</span>
+                                        <span className="text-gray-700 dark:text-gray-300">ðŸŸ¢ Vegetarian</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
@@ -746,91 +860,191 @@ const AdminMealPlans = () => {
                                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                             className="w-4 h-4 text-red-500"
                                         />
-                                        <span className="text-gray-700 dark:text-gray-300">🔴 Non-Vegetarian</span>
+                                        <span className="text-gray-700 dark:text-gray-300">ðŸ”´ Non-Vegetarian</span>
                                     </label>
                                 </div>
                             </div>
 
-                            {/* Category-wise Items */}
+                            {/* ₹”€₹”€ Category-wise Menu Items ₹”€₹”€ */}
                             <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Menu Items (category wise) *
-                                    </label>
-                                    <button
-                                        type="button"
-                                        onClick={addCategory}
-                                        className="text-sm font-semibold text-green-600 hover:underline"
-                                    >
-                                        + Add Category
-                                    </button>
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
+                                            Menu Items <span className="font-normal text-gray-400">(category wise)</span>
+                                        </label>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Dot = type&nbsp;
+                                            <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle" />&nbsp;Veg&nbsp;
+                                            <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle" />&nbsp;Non-veg&nbsp;
+                                            <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 align-middle" />&nbsp;Satvik ₹€” click dot to cycle
+                                        </p>
+                                    </div>
                                 </div>
 
+                                {/* Quick-add preset category chips */}
+                                <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-600 p-3 space-y-2 bg-gray-50/50 dark:bg-gray-700/30">
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick add category</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {PRESET_CATEGORIES.map((preset) => {
+                                            const exists = formData.categoryItems.some(
+                                                (c) => c.name.toLowerCase() === preset.name.toLowerCase()
+                                            );
+                                            return (
+                                                <button
+                                                    key={preset.name}
+                                                    type="button"
+                                                    disabled={exists}
+                                                    onClick={() => addPresetCategory(preset.name)}
+                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all
+                                                        ${exists
+                                                            ? 'bg-green-50 border-green-300 text-green-600 cursor-default dark:bg-green-900/20'
+                                                            : 'bg-white border-gray-200 text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'
+                                                        }`}
+                                                >
+                                                    <span>{preset.icon}</span>
+                                                    {preset.name}
+                                                    {exists && <span className="text-green-500 ml-0.5">₹œ“</span>}
+                                                </button>
+                                            );
+                                        })}
+                                        <button
+                                            type="button"
+                                            onClick={addCategory}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-dashed border-gray-300 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 transition-all"
+                                        >
+                                            <Plus size={11} /> Custom
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Category blocks */}
+                                {formData.categoryItems.length === 0 && (
+                                    <p className="text-sm text-center text-gray-400 py-4">
+                                        Click a category above to start building your menu.
+                                    </p>
+                                )}
+
                                 {formData.categoryItems.map((category) => (
-                                    <div key={category.id} className="rounded-2xl border border-gray-200 dark:border-gray-700 p-3 space-y-2 bg-gray-50/60 dark:bg-gray-700/40">
-                                        <div className="flex items-center gap-3">
+                                    <div key={category.id} className="rounded-2xl border border-gray-200 dark:border-gray-600 overflow-hidden shadow-sm">
+                                        {/* Category header */}
+                                        <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                                            <span className="text-base leading-none">{getCategoryIcon(category.name)}</span>
                                             <input
                                                 type="text"
                                                 required
                                                 value={category.name}
                                                 onChange={(e) => updateCategoryName(category.id, e.target.value)}
-                                                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                                                placeholder="e.g., Starters"
+                                                className="flex-1 bg-transparent text-sm font-bold text-gray-800 dark:text-gray-100 focus:outline-none placeholder-gray-400"
+                                                placeholder="Category name (e.g. Starters)"
                                             />
-                                            {formData.categoryItems.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeCategory(category.id)}
-                                                    className="text-sm text-red-500 font-semibold"
-                                                >
-                                                    Remove
-                                                </button>
-                                            )}
+                                            <span className="text-xs text-gray-400 tabular-nums">{category.items.length} item{category.items.length !== 1 ? 's' : ''}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => addItem(category.id)}
-                                                className="text-sm text-green-600 font-semibold"
+                                                className="text-xs font-semibold text-green-600 hover:text-green-700 px-2 py-1 rounded-lg hover:bg-green-50 transition-all"
                                             >
-                                                + Add Item
+                                                + Add
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCategory(category.id)}
+                                                className="p-1 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                                                title="Remove category"
+                                            >
+                                                <X size={14} />
                                             </button>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            {category.items.map((item) => (
-                                                <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+                                        {/* Items list */}
+                                        <div className="p-3 space-y-2 bg-white dark:bg-gray-800">
+                                            {/* Column headers */}
+                                            <div className="grid grid-cols-12 gap-2 px-1">
+                                                <span className="col-span-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide text-center">Type</span>
+                                                <span className="col-span-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Item Name</span>
+                                                <span className="col-span-6 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Image</span>
+                                                <span className="col-span-1" />
+                                            </div>
+
+                                            {category.items.map((item, itemIdx) => (
+                                                <div key={item.id} className="grid grid-cols-12 gap-2 items-center bg-gray-50 dark:bg-gray-700/40 rounded-xl px-2 py-2">
+                                                    {/* Veg type toggle dot */}
+                                                    <div className="col-span-1 flex justify-center">
+                                                        <button
+                                                            type="button"
+                                                            title={`${item.type || 'veg'} ₹€” click to cycle`}
+                                                            onClick={() =>
+                                                                updateItemField(
+                                                                    category.id,
+                                                                    item.id,
+                                                                    'type',
+                                                                    item.type === 'veg' ? 'non-veg' : item.type === 'non-veg' ? 'satvik' : 'veg'
+                                                                )
+                                                            }
+                                                            className="w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all hover:scale-110 focus:outline-none"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    item.type === 'non-veg' ? '#ef4444' :
+                                                                    item.type === 'satvik'  ? '#f59e0b' : '#22c55e',
+                                                                borderColor:
+                                                                    item.type === 'non-veg' ? '#dc2626' :
+                                                                    item.type === 'satvik'  ? '#d97706' : '#16a34a',
+                                                            }}
+                                                        />
+                                                    </div>
+
+                                                    {/* Item name */}
                                                     <input
                                                         type="text"
                                                         required
                                                         value={item.name}
                                                         onChange={(e) => updateItemField(category.id, item.id, 'name', e.target.value)}
-                                                        className="col-span-5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                                                        placeholder="Item name"
+                                                        className="col-span-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-green-400 placeholder-gray-400"
+                                                        placeholder={`Item ${itemIdx + 1}`}
                                                     />
-                                                    <input
-                                                        type="url"
-                                                        value={item.image || ''}
-                                                        onChange={(e) => updateItemField(category.id, item.id, 'image', e.target.value)}
-                                                        className="col-span-5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                                                        placeholder="Image URL (optional)"
-                                                    />
-                                                    <select
-                                                        value={item.type || 'veg'}
-                                                        onChange={(e) => updateItemField(category.id, item.id, 'type', e.target.value)}
-                                                        className="col-span-1 px-2 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                                                    >
-                                                        <option value="veg">Veg</option>
-                                                        <option value="non-veg">Non-Veg</option>
-                                                        <option value="satvik">Satvik</option>
-                                                    </select>
-                                                    {category.items.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeItem(category.id, item.id)}
-                                                            className="text-xs text-red-500 font-semibold"
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    )}
+
+                                                    {/* Image URL + paste */}
+                                                    <div className="col-span-6 flex items-center gap-1">
+                                                        <div className="flex-1 flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-green-400">
+                                                            <input
+                                                                type="text"
+                                                                value={item.image || ''}
+                                                                onChange={(e) => updateItemField(category.id, item.id, 'image', e.target.value)}
+                                                                onPaste={(e) => handleItemImagePasteEvent(e, category.id, item.id)}
+                                                                className="flex-1 min-w-0 px-2.5 py-1.5 bg-transparent text-xs text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none"
+                                                                placeholder="Image URL (optional)"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleItemImagePasteBtn(category.id, item.id)}
+                                                                title="Paste image or URL from clipboard"
+                                                                className="px-2 py-1.5 border-l border-gray-200 dark:border-gray-600 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex-shrink-0"
+                                                            >
+                                                                <Clipboard size={11} />
+                                                            </button>
+                                                        </div>
+                                                        {item.image && (
+                                                            <img
+                                                                src={item.image}
+                                                                alt=""
+                                                                className="w-7 h-7 rounded-lg object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
+                                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                            />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Remove item */}
+                                                    <div className="col-span-1 flex justify-center">
+                                                        {category.items.length > 1 ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeItem(category.id, item.id)}
+                                                                className="p-1 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                                                                title="Remove item"
+                                                            >
+                                                                <X size={13} />
+                                                            </button>
+                                                        ) : <span />}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -843,13 +1057,33 @@ const AdminMealPlans = () => {
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                                     Image URL
                                 </label>
-                                <input
-                                    type="url"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
-                                    placeholder="https://example.com/image.jpg"
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={formData.image}
+                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                        onPaste={handleMainImagePasteEvent}
+                                        className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        placeholder="https://example.com/image.jpg or paste image"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleMainImagePasteBtn}
+                                        title="Paste image or URL from clipboard"
+                                        className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 flex items-center gap-1.5"
+                                    >
+                                        <Clipboard size={16} />
+                                        <span className="text-sm font-medium">Paste</span>
+                                    </button>
+                                </div>
+                                {formData.image && (
+                                    <img
+                                        src={formData.image}
+                                        alt="Preview"
+                                        className="mt-2 h-16 w-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                )}
                             </div>
 
                             {/* Cuisine */}

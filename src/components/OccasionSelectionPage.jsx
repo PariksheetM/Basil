@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../utils/api.js';
 import {
     Briefcase,
     PartyPopper,
@@ -47,7 +48,7 @@ const OccasionSelectionPage = () => {
     useEffect(() => {
         const loadOccasions = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/admin/occasions.php');
+                const response = await fetch(`${API_BASE_URL}/admin/occasions.php`);
                 const result = await response.json();
                 if (result.success && Array.isArray(result.data)) {
                     const dynamic = result.data.map((occ) => ({
