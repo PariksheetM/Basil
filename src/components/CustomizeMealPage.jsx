@@ -1,8 +1,9 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { imgUrl } from '../utils/imgUrl.js';
-import { CheckCircle2, ChevronRight, Headset, Search, Star } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Headset, Minus, Plus, Star, Users } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import NavCartButton from './NavCartButton';
 import { useCart } from '../contexts/CartContext';
 import { API_BASE_URL } from '../utils/api.js';
 
@@ -729,6 +730,38 @@ export default function CustomizeMealPage() {
         [routeState.guestCount, packageInfo.minGuests]
     );
 
+    // ── Veg / Non-Veg split feature ──
+    const isBothDiet = (routeState.preference || '').toLowerCase() === 'both'
+        || (!routeState.preference && !limitToVeg && !isPoojaFlow);
+
+    const [activeDietTab, setActiveDietTab] = useState('veg');
+    const [vegGuestCount, setVegGuestCount] = useState(() => Math.round(guestCount / 2));
+    const [nonVegGuestCount, setNonVegGuestCount] = useState(() => guestCount - Math.round(guestCount / 2));
+
+    const handleVegGuestChange = (val) => {
+        const num = Math.max(0, Math.min(guestCount, Number(val) || 0));
+        setVegGuestCount(num);
+        setNonVegGuestCount(guestCount - num);
+    };
+
+    const handleNonVegGuestChange = (val) => {
+        const num = Math.max(0, Math.min(guestCount, Number(val) || 0));
+        setNonVegGuestCount(num);
+        setVegGuestCount(guestCount - num);
+    };
+
+    // Filter menu sections by active diet tab when preference is 'both'
+    const filteredMenuSections = useMemo(() => {
+        if (!isBothDiet) return menuSections;
+        return menuSections.map((section) => {
+            const filtered = section.items.filter((item) => {
+                if (activeDietTab === 'veg') return item.type === 'veg' || item.type === 'satvik';
+                return item.type === 'non-veg';
+            });
+            return { ...section, items: filtered };
+        }).filter((section) => section.items.length > 0);
+    }, [menuSections, activeDietTab, isBothDiet]);
+
     const [selectedMap, setSelectedMap] = useState(() => buildInitialSelectionMap(menuSections));
 
     useEffect(() => {
@@ -774,6 +807,8 @@ export default function CustomizeMealPage() {
     const grandTotal = baseTotal + premiumTotal + taxes;
     const perPlateEstimate = guestCount ? Math.round(grandTotal / guestCount) : 0;
 
+    const [cartAddedToast, setCartAddedToast] = useState(false);
+
     const handleProceedToCheckout = () => {
         const selectedNames = selections.map((item) => item.name);
         const addedItems = selections
@@ -786,6 +821,7 @@ export default function CustomizeMealPage() {
             price: basePerPlate,
             quantity: 1,
             guestCount,
+            ...(isBothDiet && { vegGuestCount, nonVegGuestCount }),
             image: packageImage,
             type: routeState.preference || 'both',
             customizations: {
@@ -796,18 +832,8 @@ export default function CustomizeMealPage() {
         };
 
         addToCart(cartItem);
-        navigate('/checkout', {
-            state: {
-                from: 'customize',
-                orderSummary: {
-                    guestCount,
-                    basePerPlate,
-                    premiumPerPlate,
-                    taxes,
-                    total: grandTotal,
-                },
-            },
-        });
+        setCartAddedToast(true);
+        setTimeout(() => setCartAddedToast(false), 3000);
     };
 
     const footerSelections = selections.length
@@ -815,191 +841,331 @@ export default function CustomizeMealPage() {
         : [{ id: 'none', name: 'No add-ons', type: 'neutral', priceDelta: 0 }];
 
     return (
-        <div className="font-['Public Sans',sans-serif] bg-[#f8f6f6] text-slate-900 min-h-screen">
-            <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-[#f8f6f6]/90 backdrop-blur">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-8">
-                        <BrandLogo className="flex items-center gap-3" imgClassName="h-9 w-auto" />
-                        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-                            <button className="hover:text-[#ec5b13] transition-colors" type="button" onClick={goHome}>Home</button>
-                            <button className="hover:text-[#ec5b13] transition-colors" type="button" onClick={handleExplore}>Packages</button>
-                            <button className="hover:text-[#ec5b13] transition-colors" type="button">Venues</button>
-                            <button className="hover:text-[#ec5b13] transition-colors" type="button">About</button>
-                        </nav>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="relative hidden sm:block">
-                            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input
-                                type="text"
-                                placeholder="Search menu..."
-                                className="bg-slate-100 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#ec5b13] w-64"
-                            />
-                        </div>
-                        <button className="bg-[#ec5b13] text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-[#d54f0f] transition-all" type="button">
-                            Sign In
-                        </button>
+        <div className="font-sans bg-[#fcf9f4] text-[#1c1c19] min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
+            {/* Cart Added Toast */}
+            {cartAddedToast && (
+                <div className="fixed top-6 right-6 z-[200] animate-[slideIn_0.3s_ease-out] bg-[#154212] text-white px-6 py-4 rounded-2xl shadow-[0_20px_60px_-12px_rgba(21,66,18,0.3)] flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                    <div>
+                        <p className="text-sm font-bold">Added to Cart!</p>
+                        <p className="text-xs text-white/70 mt-0.5">{packageInfo.name} • {guestCount} guests</p>
                     </div>
                 </div>
-            </header>
+            )}
+            <style>{`@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
+            {/* ── NAVBAR ── */}
+            <nav className="bg-[#fcf9f4] border-b border-[#c2c9bb]/30 h-20 flex items-center px-6 lg:px-12 z-40 shadow-sm fixed top-0 left-0 right-0">
+                <div className="flex items-center gap-2 mr-12">
+                    <BrandLogo imgClassName="h-8 w-auto" labelClassName="hidden" />
+                </div>
+                <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#42493e]">
+                    <button className="hover:text-[#904b33] transition-colors" type="button" onClick={goHome}>Home</button>
+                    <button className="hover:text-[#904b33] transition-colors" type="button" onClick={handleExplore}>Packages</button>
+                    <button className="hover:text-[#904b33] transition-colors" type="button">Venues</button>
+                    <button className="hover:text-[#904b33] transition-colors" type="button">About</button>
+                </div>
+                <div className="ml-auto flex items-center gap-3">
+                    <NavCartButton />
+                </div>
+            </nav>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-36">
-                <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-slate-500 mb-8">
-                    <button className="hover:text-[#ec5b13]" type="button" onClick={goHome}>Home</button>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                    <button
-                        className={`hover:text-[#ec5b13] ${routeState.occasionKey ? '' : 'cursor-default text-slate-400 hover:text-slate-400'}`}
-                        type="button"
-                        onClick={routeState.occasionKey ? goToOccasionMenu : undefined}
-                        disabled={!routeState.occasionKey}
-                    >
-                        {occasionName || 'Wedding Celebration'}
-                    </button>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                    <span className="text-[#ec5b13] font-medium">Customize Menu</span>
-                </nav>
+            {/* ── MAIN CONTENT ── */}
+            <main className="pt-20 pb-36">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Breadcrumb */}
+                    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[#42493e]/70 mb-8">
+                        <button className="hover:text-[#904b33] transition-colors" type="button" onClick={goHome}>Home</button>
+                        <ChevronRight className="w-4 h-4 text-[#c2c9bb]" />
+                        <button
+                            className={`hover:text-[#904b33] transition-colors ${routeState.occasionKey ? '' : 'cursor-default text-[#c2c9bb] hover:text-[#c2c9bb]'}`}
+                            type="button"
+                            onClick={routeState.occasionKey ? goToOccasionMenu : undefined}
+                            disabled={!routeState.occasionKey}
+                        >
+                            {occasionName || 'Corporate Catering'}
+                        </button>
+                        <ChevronRight className="w-4 h-4 text-[#c2c9bb]" />
+                        <span className="text-[#904b33] font-semibold">Customize Menu</span>
+                    </nav>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    <aside className="lg:col-span-4 space-y-6">
-                        <div className="sticky top-24 space-y-6">
-                            <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-xl">
-                                <div className="h-64 bg-cover bg-center relative" style={{ backgroundImage: `url(${imgUrl(packageImage)})` }}>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#221610]/80 to-transparent"></div>
-                                    <div className="absolute bottom-4 left-4">
-                                        <span className="bg-[#ec5b13] text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Premium Selection</span>
-                                        <h2 className="text-white text-2xl font-bold mt-1">{packageInfo.name}</h2>
-                                    </div>
-                                </div>
-                                <div className="p-6 space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex text-[#ec5b13]">
-                                            <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
-                                            <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
-                                            <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
-                                            <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
-                                            <Star className="w-4 h-4" strokeWidth={1.5} />
-                                        </div>
-                                        <span className="text-xs font-medium text-slate-500">4.9 (128 Reviews)</span>
-                                    </div>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        Complete service for upscale celebrations. Includes professional staff, premium plating, linens, and decor.
-                                    </p>
-                                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                                        <div>
-                                            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Base Price</p>
-                                            <p className="text-xl font-bold text-[#ec5b13]">{formatCurrency(basePerPlate)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Capacity</p>
-                                            <p className="text-sm font-bold">{packageInfo.minGuests} - {Math.max(packageInfo.minGuests, guestCount)} Guests</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                        {/* ── LEFT SIDEBAR ── */}
+                        <aside className="lg:col-span-4">
+                            <div className="sticky top-24 space-y-6">
+                                {/* Package Hero Card */}
+                                <div className="bg-white rounded-[24px] overflow-hidden border border-[#c2c9bb]/20 shadow-[0_10px_30px_-10px_rgba(28,28,25,0.06)]">
+                                    <div className="h-64 bg-cover bg-center relative rounded-t-[24px] overflow-hidden" style={{ backgroundImage: `url(${imgUrl(packageImage)})` }}>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#1c1c19]/80 via-[#1c1c19]/20 to-transparent"></div>
+                                        <div className="absolute bottom-5 left-6">
+                                            <h2 className="text-white text-2xl font-extrabold tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>{packageInfo.name}</h2>
                                         </div>
                                     </div>
-                                    <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-500">Service Fee (15%)</span>
-                                            <span className="font-medium">{formatCurrency(taxes)}</span>
+                                    <div className="p-6 space-y-5">
+                                        {/* Rating */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex text-[#904b33]">
+                                                <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
+                                                <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
+                                                <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
+                                                <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
+                                                <Star className="w-4 h-4" strokeWidth={1.5} />
+                                            </div>
+                                            <span className="text-xs font-medium text-[#42493e]/60">4.9 (128 reviews)</span>
                                         </div>
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-500">Setup & Cleanup</span>
-                                            <span className="font-medium text-emerald-600">Included</span>
+                                        {/* Description */}
+                                        <p className="text-sm text-[#42493e] leading-relaxed">
+                                            {packageInfo.description || 'Complete service for upscale celebrations. Includes professional staff, premium plating, linens, and decor.'}
+                                        </p>
+                                        {/* Price & Capacity */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-[#f6f3ee] rounded-xl p-4">
+                                                <p className="text-[10px] uppercase tracking-widest text-[#42493e]/50 font-bold mb-1">Base Price</p>
+                                                <p className="text-xl font-extrabold text-[#154212]" style={{ fontFamily: 'Manrope, sans-serif' }}>{formatCurrency(basePerPlate)}</p>
+                                            </div>
+                                            <div className="bg-[#f6f3ee] rounded-xl p-4">
+                                                <p className="text-[10px] uppercase tracking-widest text-[#42493e]/50 font-bold mb-1">Total Guests</p>
+                                                <p className="text-sm font-bold text-[#1c1c19]">{guestCount} Guests</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="p-6 bg-[#ec5b13]/10 border border-[#ec5b13]/20 rounded-xl flex items-start gap-4">
-                                <Headset className="w-6 h-6 text-[#ec5b13]" />
-                                <div>
-                                    <h4 className="text-sm font-bold">Need assistance?</h4>
-                                    <p className="text-xs text-slate-500 mt-1">Our consultants can help craft the perfect menu.</p>
-                                    <button className="text-[#ec5b13] text-xs font-bold mt-2 hover:underline" type="button" onClick={handleChatWithExpert}>Schedule a call</button>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-
-                    <section className="lg:col-span-8 space-y-10">
-                        {menuSections.map((section, index) => (
-                            <div key={section.id} className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-2xl font-bold tracking-tight">{section.title}</h3>
-                                    <span className={`${index === 0 ? 'bg-[#ec5b13]/20 text-[#ec5b13]' : 'bg-slate-100 text-slate-500'} px-3 py-1 rounded-full text-xs font-bold`}>
-                                        Step {index + 1} of {menuSections.length}
-                                    </span>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {section.items.map((item) => {
-                                        const isSelected = selectedMap[section.id]?.includes(item.id);
-                                        const cardImage = item.image || packageImage || IMAGE_FALLBACK;
-
-                                        return (
-                                            <button
-                                                key={item.id}
-                                                type="button"
-                                                onClick={() => toggleSelection(section.id, item)}
-                                                className={`group relative bg-white border ${isSelected ? 'border-2 border-[#ec5b13] shadow-lg' : 'border-slate-200 hover:border-[#ec5b13]/50'} rounded-xl p-4 transition-all text-left`}
-                                            >
-                                                <div className="flex gap-4">
-                                                    <div className="w-20 h-20 rounded-lg bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${imgUrl(cardImage)})` }}></div>
-                                                    <div className="flex-1">
-                                                        <div className="flex justify-between items-start gap-2">
-                                                            <h4 className="font-bold text-slate-900">{item.name}</h4>
-                                                            {isSelected && <CheckCircle2 className="w-5 h-5 text-[#ec5b13]" strokeWidth={1.8} />}
-                                                        </div>
-                                                        <p className="text-xs text-slate-500 mt-1 leading-snug">{item.description}</p>
-                                                        <p className={`text-sm font-bold mt-2 ${item.priceDelta > 0 ? 'text-slate-900' : 'text-[#ec5b13]'}`}>
-                                                            {item.priceDelta > 0 ? `+ ${formatCurrency(item.priceDelta)} / guest` : 'Included'}
-                                                        </p>
+                                        {/* Veg / Non-Veg Guest Splitter */}
+                                        {isBothDiet && (
+                                            <div className="bg-[#f6f3ee] rounded-xl p-4 space-y-3">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Users className="w-4 h-4 text-[#154212]" />
+                                                    <p className="text-[10px] uppercase tracking-widest text-[#42493e]/50 font-bold">Guest Split</p>
+                                                </div>
+                                                {/* Veg Guests */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                                        <span className="text-sm font-semibold text-[#1c1c19]">Veg Guests</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleVegGuestChange(vegGuestCount - 1)}
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                        >
+                                                            <Minus className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <input
+                                                            type="number"
+                                                            value={vegGuestCount}
+                                                            onChange={(e) => handleVegGuestChange(e.target.value)}
+                                                            className="w-14 text-center text-sm font-bold bg-white border border-[#c2c9bb]/30 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-[#154212]"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleVegGuestChange(vegGuestCount + 1)}
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                        >
+                                                            <Plus className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                {!isSelected && item.priceDelta === 0 && (
-                                                    <div className="absolute inset-0 rounded-xl border border-transparent group-hover:border-[#ec5b13]/20"></div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
+                                                {/* Non-Veg Guests */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                                        <span className="text-sm font-semibold text-[#1c1c19]">Non-Veg Guests</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleNonVegGuestChange(nonVegGuestCount - 1)}
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                        >
+                                                            <Minus className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <input
+                                                            type="number"
+                                                            value={nonVegGuestCount}
+                                                            onChange={(e) => handleNonVegGuestChange(e.target.value)}
+                                                            className="w-14 text-center text-sm font-bold bg-white border border-[#c2c9bb]/30 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-[#154212]"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleNonVegGuestChange(nonVegGuestCount + 1)}
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                        >
+                                                            <Plus className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Included Services */}
+                                        <div className="space-y-2.5">
+                                            <div className="flex items-center gap-2.5 text-sm text-[#42493e]">
+                                                <CheckCircle2 className="w-4 h-4 text-[#154212]" strokeWidth={2} />
+                                                <span>Service Fee Included</span>
+                                            </div>
+                                            <div className="flex items-center gap-2.5 text-sm text-[#42493e]">
+                                                <CheckCircle2 className="w-4 h-4 text-[#154212]" strokeWidth={2} />
+                                                <span>Setup Included</span>
+                                            </div>
+                                            <div className="flex items-center gap-2.5 text-sm text-[#42493e]">
+                                                <CheckCircle2 className="w-4 h-4 text-[#154212]" strokeWidth={2} />
+                                                <span>Catering Staff Included</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Need Assistance Card */}
+                                <div className="p-5 bg-[#154212]/5 border border-[#154212]/10 rounded-[20px] flex items-start gap-4">
+                                    <div className="w-10 h-10 bg-[#154212]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <Headset className="w-5 h-5 text-[#154212]" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-[#154212]" style={{ fontFamily: 'Manrope, sans-serif' }}>Need assistance?</h4>
+                                        <p className="text-xs text-[#42493e]/70 mt-1">Our consultants can help craft the perfect menu.</p>
+                                        <button className="text-[#904b33] text-xs font-bold mt-2 hover:underline" type="button" onClick={handleChatWithExpert}>Schedule a call →</button>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </section>
+                        </aside>
+
+                        {/* ── RIGHT CONTENT: Menu Sections ── */}
+                        <section className="lg:col-span-8 space-y-10">
+                            {/* Veg / Non-Veg Tab Switcher */}
+                            {isBothDiet && (
+                                <div className="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-[0_4px_16px_-4px_rgba(28,28,25,0.06)] border border-[#c2c9bb]/20 w-fit">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveDietTab('veg')}
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                            activeDietTab === 'veg'
+                                                ? 'bg-[#154212] text-white shadow-md'
+                                                : 'text-[#42493e] hover:bg-[#f6f3ee]'
+                                        }`}
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                        Veg Menu
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveDietTab('non-veg')}
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                            activeDietTab === 'non-veg'
+                                                ? 'bg-[#904b33] text-white shadow-md'
+                                                : 'text-[#42493e] hover:bg-[#f6f3ee]'
+                                        }`}
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                                        Non-Veg Menu
+                                    </button>
+                                </div>
+                            )}
+
+                            {filteredMenuSections.map((section, index) => (
+                                <div key={section.id} className="space-y-5">
+                                    {/* Section Header */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-[#154212] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                                {index + 1}
+                                            </div>
+                                            <h3 className="text-2xl font-extrabold text-[#154212] tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>{section.title}</h3>
+                                        </div>
+                                        <span className="text-xs font-semibold text-[#42493e]/50 uppercase tracking-wider">
+                                            {section.helper}
+                                        </span>
+                                    </div>
+
+                                    {/* Item Cards Grid */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {section.items.map((item) => {
+                                            const isSelected = selectedMap[section.id]?.includes(item.id);
+                                            const cardImage = item.image || packageImage || IMAGE_FALLBACK;
+
+                                            return (
+                                                <button
+                                                    key={item.id}
+                                                    type="button"
+                                                    onClick={() => toggleSelection(section.id, item)}
+                                                    className={`group relative bg-white rounded-[20px] p-4 transition-all duration-300 text-left border-2 ${
+                                                        isSelected
+                                                            ? 'border-[#904b33] shadow-[0_8px_24px_-8px_rgba(144,75,51,0.15)]'
+                                                            : 'border-transparent shadow-[0_4px_16px_-4px_rgba(28,28,25,0.06)] hover:shadow-[0_8px_24px_-8px_rgba(28,28,25,0.1)] hover:border-[#c2c9bb]/40'
+                                                    }`}
+                                                >
+                                                    <div className="flex gap-4">
+                                                        <div
+                                                            className="w-[72px] h-[72px] rounded-2xl bg-cover bg-center shrink-0 ring-1 ring-[#c2c9bb]/20"
+                                                            style={{ backgroundImage: `url(${imgUrl(cardImage)})` }}
+                                                        ></div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <h4 className="font-bold text-[#1c1c19] text-sm leading-snug" style={{ fontFamily: 'Manrope, sans-serif' }}>{item.name}</h4>
+                                                                {isSelected && (
+                                                                    <div className="w-6 h-6 bg-[#904b33] rounded-full flex items-center justify-center flex-shrink-0">
+                                                                        <CheckCircle2 className="w-4 h-4 text-white" strokeWidth={2.5} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs text-[#42493e]/60 mt-1 leading-snug line-clamp-2">{item.description}</p>
+                                                            <p className={`text-sm font-bold mt-2 ${
+                                                                item.priceDelta > 0 ? 'text-[#42493e]' : 'text-[#154212]'
+                                                            }`}>
+                                                                {item.priceDelta > 0 ? `+ ${formatCurrency(item.priceDelta)}/guest` : 'Included'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    </div>
                 </div>
             </main>
 
-            <footer className="fixed bottom-0 left-0 w-full z-50 backdrop-blur-lg bg-[#221610]/80 border-t border-[#ec5b13]/20 pb-6 pt-4">
+            {/* ── FIXED FOOTER ── */}
+            <footer className="fixed bottom-0 left-0 w-full z-50 bg-[#154212] border-t border-[#154212] py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        {/* Selection Pills */}
                         <div className="flex items-center gap-6 w-full md:w-auto">
                             <div className="hidden sm:block">
-                                <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold mb-1">Your Selection</p>
+                                <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1.5">Your Selection</p>
                                 <div className="flex gap-2 custom-scrollbar overflow-x-auto max-w-md pb-1">
                                     {footerSelections.map((item) => (
-                                        <div key={item.id} className="shrink-0 flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs border border-white/10 text-white">
-                                            <span className={`w-2 h-2 rounded-full ${item.type === 'veg' ? 'bg-emerald-400' : item.type === 'non-veg' ? 'bg-rose-400' : 'bg-slate-400'}`}></span>
+                                        <div key={item.id} className="shrink-0 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs border border-white/10 text-white backdrop-blur-sm">
+                                            <span className={`w-2 h-2 rounded-full ${item.type === 'veg' ? 'bg-emerald-400' : item.type === 'non-veg' ? 'bg-rose-400' : item.type === 'satvik' ? 'bg-amber-400' : 'bg-white/40'}`}></span>
                                             {item.name}
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             <div className="h-10 w-px bg-white/10 hidden md:block"></div>
+                            {/* Price */}
                             <div className="flex flex-col">
-                                <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Estimated Total</p>
-                                <p className="text-2xl font-black text-white">{formatCurrency(grandTotal)}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold">Estimated Total</p>
+                                <p className="text-2xl font-black text-white" style={{ fontFamily: 'Manrope, sans-serif' }}>{formatCurrency(grandTotal)}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 w-full md:w-auto">
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-3 w-full md:w-auto">
                             <button
                                 type="button"
                                 onClick={handleSaveQuote}
-                                className="flex-1 md:flex-none border border-[#ec5b13] text-[#ec5b13] px-8 py-3 rounded-lg text-sm font-bold hover:bg-[#ec5b13]/10 transition-all uppercase tracking-wider bg-white/5"
+                                className="flex-1 md:flex-none border border-white/30 text-white px-7 py-3 rounded-full text-sm font-bold hover:bg-white/10 transition-all uppercase tracking-wider"
                             >
                                 Save Quote
                             </button>
                             <button
                                 type="button"
-                                onClick={handleProceedToCheckout}
-                                className="flex-1 md:flex-none bg-[#ec5b13] text-white px-10 py-3 rounded-lg text-sm font-bold hover:bg-[#d54f0f] transition-all shadow-[0_0_20px_rgba(236,91,19,0.3)] uppercase tracking-wider"
+                                onClick={() => {
+                                    handleProceedToCheckout();
+                                }}
+                                className="flex-1 md:flex-none bg-[#904b33] text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-[#783922] transition-all shadow-lg hover:shadow-[#904b33]/30 uppercase tracking-wider"
                             >
-                                Proceed to Checkout
+                                Add to Cart
                             </button>
                         </div>
                     </div>

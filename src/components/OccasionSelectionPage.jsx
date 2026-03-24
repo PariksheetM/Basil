@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api.js';
 import {
@@ -13,17 +13,16 @@ import {
 import BrandLogo from './BrandLogo';
 
 const baseOccasionOptions = [
-    { key: 'wedding', label: 'Wedding Celebration', icon: Heart, color: 'text-rose-500', background: 'bg-rose-50' },
-    { key: 'corporate', label: 'Corporate Event', icon: Briefcase, color: 'text-blue-600', background: 'bg-blue-50' },
-    { key: 'birthday', label: 'Birthday Party', icon: PartyPopper, color: 'text-amber-500', background: 'bg-amber-50' },
-    { key: 'pooja', label: 'Pooja / Religious Event', icon: Flower2, color: 'text-orange-500', background: 'bg-orange-50' },
-    { key: 'houseParty', label: 'House Party', icon: HomeIcon, color: 'text-green-600', background: 'bg-green-50' },
-    { key: 'other', label: 'Custom Event', icon: Sparkles, color: 'text-slate-600', background: 'bg-slate-100' },
+    { key: 'wedding', label: 'Wedding Celebration', icon: Heart, color: 'text-[#904b33]', background: 'bg-[#904b33]/10' },
+    { key: 'corporate', label: 'Corporate Event', icon: Briefcase, color: 'text-[#154212]', background: 'bg-[#154212]/10' },
+    { key: 'birthday', label: 'Birthday Party', icon: PartyPopper, color: 'text-[#c3a066]', background: 'bg-[#c3a066]/10' },
+    { key: 'pooja', label: 'Pooja / Religious Event', icon: Flower2, color: 'text-[#783922]', background: 'bg-[#783922]/10' },
+    { key: 'houseParty', label: 'House Party', icon: HomeIcon, color: 'text-[#3b6934]', background: 'bg-[#3b6934]/10' },
+    { key: 'other', label: 'Custom Event', icon: Sparkles, color: 'text-[#60233e]', background: 'bg-[#60233e]/10' },
 ];
 
 const OccasionSelectionPage = () => {
     const navigate = useNavigate();
-    const [selectedOccasionKey, setSelectedOccasionKey] = useState('');
     const [occasionOptions, setOccasionOptions] = useState(baseOccasionOptions);
 
     const slugify = (value) =>
@@ -35,17 +34,6 @@ const OccasionSelectionPage = () => {
             .replace(/^-+|-+$/g, '') || '';
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const storedOccasion = window.localStorage.getItem('selectedOccasionKey');
-        if (storedOccasion) {
-            setSelectedOccasionKey(storedOccasion);
-        }
-    }, []);
-
-    useEffect(() => {
         const loadOccasions = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/occasions.php`);
@@ -55,8 +43,8 @@ const OccasionSelectionPage = () => {
                         key: slugify(occ.name),
                         label: occ.name,
                         icon: Sparkles,
-                        color: 'text-emerald-600',
-                        background: 'bg-emerald-50',
+                        color: 'text-[#2d5a27]',
+                        background: 'bg-[#2d5a27]/10',
                     }));
                     const merged = [...baseOccasionOptions];
                     dynamic.forEach((option) => {
@@ -75,18 +63,8 @@ const OccasionSelectionPage = () => {
     }, []);
 
     const handleSelect = (key) => {
-        setSelectedOccasionKey(key);
-    };
-
-    const handleContinue = () => {
-        if (!selectedOccasionKey) {
-            return;
-        }
-
-        const selectedOccasion = occasionOptions.find((option) => option.key === selectedOccasionKey);
-        if (!selectedOccasion) {
-            return;
-        }
+        const selectedOccasion = occasionOptions.find((option) => option.key === key);
+        if (!selectedOccasion) return;
 
         if (typeof window !== 'undefined') {
             window.localStorage.setItem('selectedOccasionKey', selectedOccasion.key);
@@ -94,81 +72,67 @@ const OccasionSelectionPage = () => {
             window.localStorage.setItem('selectedOccasionLabel', selectedOccasion.label);
         }
 
+        // Auto navigate to the menu explicitly for the selected occasion immediately upon selection
         navigate('/occasion-menu', { state: { occasion: selectedOccasion.key } });
     };
 
     return (
-        <div className="min-h-screen bg-[#f8f7f5] text-slate-800">
-            <header className="border-b border-slate-200 bg-white">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="min-h-screen bg-[#fcf9f4] text-[#1c1c19] font-sans">
+            <header className="fixed top-0 left-0 w-full z-10 bg-[#fcf9f4]/90 backdrop-blur-md border-b border-[#c2c9bb]/20">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between shadow-sm">
                     <button
                         type="button"
                         onClick={() => navigate('/select-city')}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#f27f0d] transition-colors"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-[#42493e] hover:text-[#904b33] transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         City
                     </button>
                     <BrandLogo
                         className="gap-3"
-                        imgClassName="h-8 w-auto"
-                        labelClassName="text-lg font-bold tracking-tight text-slate-900"
+                        imgClassName="h-8 w-auto rounded-xl"
+                        labelClassName="text-xl font-bold tracking-tight text-[#154212]"
                     />
                     <div className="w-16" />
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div className="text-center mb-12">
-                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-[0.3em]">
+            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
+                <div className="text-center mb-16">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-xs font-bold text-[#904b33] uppercase tracking-[0.2em] shadow-sm mb-6">
                         Step 2 of 2
                     </span>
-                    <h1 className="mt-6 text-3xl md:text-4xl font-bold text-slate-900">What&rsquo;s the occasion?</h1>
-                    <p className="mt-3 text-sm md:text-base text-slate-500 max-w-2xl mx-auto">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-[#154212] tracking-tight mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                        What&rsquo;s the occasion?
+                    </h1>
+                    <p className="text-base md:text-lg text-[#42493e] max-w-2xl mx-auto leading-relaxed">
                         We&rsquo;ll tailor recommendations and pricing for your event type. Select the experience that fits your gathering.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {occasionOptions.map((occasion) => {
                         const Icon = occasion.icon;
-                        const isActive = occasion.key === selectedOccasionKey;
-
                         return (
                             <button
                                 key={occasion.key}
                                 type="button"
                                 onClick={() => handleSelect(occasion.key)}
-                                className={`flex flex-col items-center gap-3 rounded-2xl border p-6 transition-all text-center ${
-                                    isActive
-                                        ? 'border-[#f27f0d] bg-white shadow-md shadow-[#f27f0d]/20'
-                                        : 'border-slate-100 bg-white/70 hover:border-[#f27f0d]/40 hover:bg-white'
-                                }`}
+                                className="group flex flex-col items-center gap-4 rounded-[24px] bg-white p-8 transition-all duration-300 text-center shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)] hover:-translate-y-2 hover:shadow-[0_20px_40px_-8px_rgba(28,28,25,0.1)] border border-transparent hover:border-[#904b33]/20 cursor-pointer"
                             >
-                                <div className={`w-14 h-14 rounded-full flex items-center justify-center ${occasion.background}`}>
-                                    <Icon className={`w-7 h-7 ${occasion.color}`} />
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${occasion.background} transition-transform duration-300 group-hover:scale-110`}>
+                                    <Icon className={`w-8 h-8 ${occasion.color}`} />
                                 </div>
-                                <span className="text-sm font-semibold text-slate-700 leading-tight">{occasion.label}</span>
+                                <span className="text-[1.05rem] font-bold text-[#154212] leading-tight mt-2">{occasion.label}</span>
                             </button>
                         );
                     })}
                 </div>
 
-                <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-xs sm:text-sm text-slate-500 text-center sm:text-left">
+                <div className="mt-16 text-center">
+                    <p className="text-sm text-[#42493e] max-w-xl mx-auto">
                         Need something custom? Choose &ldquo;Custom Event&rdquo; and our planners will help you craft a bespoke menu.
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleContinue}
-                        className={`inline-flex items-center justify-center px-6 py-3 rounded-full text-sm font-semibold transition-colors shadow-sm ${
-                            selectedOccasionKey
-                                ? 'bg-[#f27f0d] text-white hover:bg-[#d9700a]'
-                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        }`}
-                    >
-                        Continue to Home
-                    </button>
+                    </p>
                 </div>
             </main>
         </div>

@@ -1,8 +1,9 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Minus } from 'lucide-react';
+import { CheckCircle, ArrowRight, Minus, Users, Sliders, Leaf } from 'lucide-react';
 import { API_BASE_URL } from '../utils/api.js';
 import BrandLogo from './BrandLogo';
+import NavCartButton from './NavCartButton';
 
 const dietBadgeStyles = {
     veg: {
@@ -1168,13 +1169,13 @@ const OccasionMenuPage = () => {
         const staticData = occasionKey ? mealPackagesByOccasion[occasionKey] : null;
         const dynamicData = apiPackages.length
             ? {
-                  displayName: apiMeals.find((m) => slugify(m.occasion) === occasionKey || m.occasion === occasionKey)?.occasion || occasionKey,
-                  description: 'Curated menus for your occasion',
-                  defaultGuests: 50,
-                  defaultBudget: apiPackages[0]?.price || 400,
-                  tags: ['Custom'],
-                  packages: apiPackages,
-              }
+                displayName: apiMeals.find((m) => slugify(m.occasion) === occasionKey || m.occasion === occasionKey)?.occasion || occasionKey,
+                description: 'Curated menus for your occasion',
+                defaultGuests: 50,
+                defaultBudget: apiPackages[0]?.price || 400,
+                tags: ['Custom'],
+                packages: apiPackages,
+            }
             : null;
         if (!staticData && !dynamicData) return null;
         if (!staticData) return dynamicData;
@@ -1481,8 +1482,8 @@ const OccasionMenuPage = () => {
     }
 
     return (
-        <div className="bg-[#f5f3ed] text-slate-800 min-h-screen flex flex-col">
-            <nav className="bg-white border-b border-[#e3dfd6] h-16 flex items-center px-6 lg:px-12">
+        <div className="bg-[#fcf9f4] text-[#1c1c19] min-h-screen flex flex-col font-sans">
+            <nav className="bg-[#fcf9f4] border-b border-[#c2c9bb]/30 h-20 flex items-center px-6 lg:px-12 z-40 shadow-sm fixed top-0 left-0 right-0">
                 <div className="flex items-center gap-2 mr-12">
                     <BrandLogo
                         imgClassName="h-8 w-auto"
@@ -1490,144 +1491,116 @@ const OccasionMenuPage = () => {
                     />
                 </div>
                 <div className="ml-auto flex items-center gap-3">
-                    <button
-                        type="button"
-                        className="px-5 py-2 text-slate-700 text-sm font-medium hover:text-slate-900 transition-colors"
-                    >
-                        Logout
-                    </button>
+                    <NavCartButton />
                 </div>
             </nav>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <main className="flex-1 flex flex-col min-w-0 bg-[#f5f3ed]">
-                    <div className="bg-white border-b border-[#e3dfd6] px-8 py-5 flex-shrink-0">
-                        <div className="flex flex-wrap items-center gap-8">
-                            <div className="flex items-center gap-4">
-                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">GUESTS</span>
-                                <div className="flex items-center border border-slate-300 rounded">
-                                    <button
-                                        type="button"
-                                        onClick={() => adjustGuests(-1)}
-                                        className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition"
-                                    >
-                                        <Minus size={16} />
-                                    </button>
-                                    <span className="w-16 text-center font-semibold text-slate-900 border-x border-slate-300">{guestCount}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => adjustGuests(1)}
-                                        className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition"
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 flex-1 min-w-[280px] max-w-md">
-                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">BUDGET</span>
-                                <div className="flex-1 relative">
-                                    <input
-                                        type="range"
-                                        min={150}
-                                        max={800}
-                                        value={budget}
-                                        onChange={(event) => setBudget(Number(event.target.value))}
-                                        className="w-full h-1.5 bg-slate-200 rounded-full cursor-pointer appearance-none"
-                                        style={{
-                                            background: `linear-gradient(to right, #c9a961 0%, #c9a961 ${((budget - 150) / (800 - 150)) * 100}%, #e5e7eb ${((budget - 150) / (800 - 150)) * 100}%, #e5e7eb 100%)`
-                                        }}
-                                    />
-                                </div>
-                            </div>
+            <div className="flex-1 flex pt-20">
+                {/* ── LEFT SIDEBAR (Fixed) ── */}
+                <aside className="hidden lg:flex flex-col w-[280px] xl:w-[300px] bg-[#f6f3ee] border-r border-[#c2c9bb]/30 p-6 overflow-y-auto custom-scrollbar flex-shrink-0 fixed top-20 left-0 h-[calc(100vh-5rem)] z-20">
+                    <div className="mb-6">
+                        <h2 className="text-sm font-extrabold text-[#154212] uppercase tracking-widest mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>Filters</h2>
+                        <p className="text-xs text-[#42493e]">Refine your selection</p>
+                    </div>
+
+                    {/* Guest Count */}
+                    <div className="mb-6">
+                        <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                            <Users size={14} className="text-[#904b33]" /> Guest Count
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => adjustGuests(-1)}
+                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#c2c9bb]/40 text-[#42493e] hover:bg-[#fcf9f4] hover:border-[#904b33]/40 transition-all shadow-sm"
+                            >
+                                <Minus size={14} />
+                            </button>
+                            <input
+                                type="number"
+                                min={1}
+                                value={guestCount}
+                                onChange={(e) => {
+                                    const v = parseInt(e.target.value, 10);
+                                    setGuestCount(isNaN(v) || v < 1 ? 1 : v);
+                                }}
+                                className="w-20 h-9 text-center font-bold text-[#154212] text-lg bg-white border border-[#c2c9bb]/40 rounded-xl outline-none focus:border-[#904b33] focus:ring-2 focus:ring-[#904b33]/20 transition-all shadow-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => adjustGuests(1)}
+                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#c2c9bb]/40 text-[#42493e] hover:bg-[#fcf9f4] hover:border-[#904b33]/40 transition-all shadow-sm"
+                            >
+                                +
+                            </button>
                         </div>
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
-                            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">DIET</span>
-                            <div className="flex flex-wrap gap-2">
-                                {dietFilters.map((filter) => {
-                                    const label = dietFilterLabels[filter] || filter;
-                                    const isActive = dietFilter === filter;
-                                    return (
-                                        <button
-                                            key={filter}
-                                            type="button"
-                                            onClick={() => setDietFilter(filter)}
-                                            className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                                                isActive
-                                                    ? 'bg-slate-800 text-white border-slate-800'
-                                                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
-                                            }`}
-                                        >
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                    </div>
+
+                    {/* Budget Range */}
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                <Sliders size={14} className="text-[#904b33]" /> Budget Range
+                            </span>
                         </div>
-                        {occasionKey === 'birthday' && (
-                            <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Party</span>
-                                    {['all', 'kids', 'adult'].map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            onClick={() => setPartyTypeFilter(option)}
-                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                                                partyTypeFilter === option
-                                                    ? 'bg-slate-900 text-white border-slate-900'
-                                                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-500'
-                                            }`}
-                                        >
-                                            {option === 'all' ? 'All' : option === 'kids' ? 'Kids' : 'Adult'}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Venue</span>
-                                    {['all', 'indoor', 'outdoor'].map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            onClick={() => setVenueFilter(option)}
-                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                                                venueFilter === option
-                                                    ? 'bg-slate-900 text-white border-slate-900'
-                                                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-500'
-                                            }`}
-                                        >
-                                            {option === 'all' ? 'Indoor/Outdoor' : option === 'indoor' ? 'Indoor' : 'Outdoor'}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Live Counter</span>
-                                    {[{ key: 'all', label: 'Any' }, { key: 'required', label: 'Required' }, { key: 'not-required', label: 'Not Needed' }].map((option) => (
-                                        <button
-                                            key={option.key}
-                                            type="button"
-                                            onClick={() => setLiveCounterFilter(option.key)}
-                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                                                liveCounterFilter === option.key
-                                                    ? 'bg-slate-900 text-white border-slate-900'
-                                                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-500'
-                                            }`}
-                                        >
-                                            {option.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="flex items-center justify-between text-xs text-[#42493e] mb-2 px-1">
+                            <span>₹150</span>
+                            <span className="font-bold text-[#154212] text-sm">₹{budget}</span>
+                            <span>₹800</span>
+                        </div>
+                        <input
+                            type="range"
+                            min={150}
+                            max={800}
+                            value={budget}
+                            onChange={(event) => setBudget(Number(event.target.value))}
+                            className="w-full h-2 rounded-full cursor-pointer appearance-none"
+                            style={{
+                                background: `linear-gradient(to right, #904b33 0%, #904b33 ${((budget - 150) / (800 - 150)) * 100}%, #e5e2dd ${((budget - 150) / (800 - 150)) * 100}%, #e5e2dd 100%)`
+                            }}
+                        />
+                    </div>
+
+                    {/* Dietary Needs */}
+                    <div className="mb-6">
+                        <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                            <Leaf size={14} className="text-[#904b33]" /> Dietary Needs
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                            {dietFilters.map((filter) => {
+                                const label = dietFilterLabels[filter] || filter;
+                                const isActive = dietFilter === filter;
+                                return (
+                                    <button
+                                        key={filter}
+                                        type="button"
+                                        onClick={() => setDietFilter(filter)}
+                                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${isActive
+                                            ? 'bg-[#904b33] text-white border-[#904b33] shadow-sm'
+                                            : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#904b33]/50 hover:text-[#154212]'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Cuisine Categories */}
+                    <div className="mb-6">
+                        <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                            Catering Categories
+                        </span>
+                        <div className="flex flex-col gap-1.5">
                             {cuisineFilters.map((filter) => (
                                 <button
                                     key={filter}
                                     type="button"
                                     onClick={() => setSelectedCuisine(filter)}
-                                    className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border ${
-                                        selectedCuisine === filter
-                                            ? 'bg-[#c9a961] text-white border-[#c9a961]'
-                                            : 'bg-white text-slate-600 border-slate-300 hover:border-[#c9a961]'
+                                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${selectedCuisine === filter
+                                        ? 'bg-[#154212] text-white shadow-sm'
+                                        : 'text-[#42493e] hover:bg-white hover:shadow-sm'
                                     }`}
                                 >
                                     {filter}
@@ -1636,126 +1609,187 @@ const OccasionMenuPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-8 py-10 custom-scrollbar">
-                        <div className="max-w-7xl mx-auto">
-                            <div className="text-center mb-10">
-                                <h1 className="text-4xl font-light text-slate-900 mb-2">Premium Meal Boxes</h1>
-                                <p className="text-slate-600 text-base">{occasionData.description}</p>
+                    {/* Birthday-specific filters */}
+                    {occasionKey === 'birthday' && (
+                        <div className="mb-6 space-y-4">
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#42493e] mb-2 block" style={{ fontFamily: 'Manrope, sans-serif' }}>Party Type</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {['all', 'kids', 'adult'].map((option) => (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => setPartyTypeFilter(option)}
+                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${partyTypeFilter === option
+                                                ? 'bg-[#154212] text-white border-[#154212]'
+                                                : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#154212]/30'
+                                            }`}
+                                        >
+                                            {option === 'all' ? 'All' : option === 'kids' ? 'Kids' : 'Adult'}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-32">
-                                {noPackages && (
-                                    <div className="col-span-full bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-                                        <p className="text-lg font-semibold text-slate-800">No menus match your filters.</p>
-                                        <p className="text-sm text-slate-500 mt-2">
-                                            Try adjusting the budget, diet, or cuisine filters to explore more options.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {!noPackages &&
-                                    filteredPackages.map((pkg) => {
-                                        const dietStyles = dietBadgeStyles[pkg.diet] || dietBadgeStyles.veg;
-                                        const isSelected = pkg.id === selectedPackageId;
-
-                                        return (
-                                            <article
-                                                key={pkg.id}
-                                                role="button"
-                                                tabIndex={pkg.isAvailable ? 0 : -1}
-                                                onClick={() => pkg.isAvailable && setSelectedPackageId(pkg.id)}
-                                                onKeyDown={(e) =>
-                                                    pkg.isAvailable && (e.key === 'Enter' || e.key === ' ')
-                                                        ? setSelectedPackageId(pkg.id)
-                                                        : null
-                                                }
-                                                className={`bg-white rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full border-2 ${
-                                                    isSelected
-                                                        ? 'border-[#c9a961] shadow-lg shadow-[#c9a961]/20'
-                                                        : 'border-slate-200'
-                                                }`}
-                                            >
-                                                <div className="relative h-56 bg-slate-100 overflow-hidden">
-                                                    <img
-                                                        src={pkg.image || MEAL_FALLBACK_IMG}
-                                                        alt={pkg.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                        onError={(event) => {
-                                                            event.currentTarget.onerror = null;
-                                                            event.currentTarget.src = MEAL_FALLBACK_IMG;
-                                                        }}
-                                                    />
-                                                    {!pkg.isAvailable && (
-                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                            <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded">SOLD OUT</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="p-5 flex-1 flex flex-col">
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <div className="flex-1">
-                                                            <h3 className="font-semibold text-lg text-slate-900 leading-tight mb-1">{pkg.name}</h3>
-                                                        </div>
-                                                        <div className={`ml-2 flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${dietStyles.wrapper} flex-shrink-0`}>
-                                                            <div className={`w-2 h-2 rounded-full ${dietStyles.dot}`}></div>
-                                                            {dietStyles.label}
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-slate-600 text-sm mb-4 line-clamp-2">{pkg.description}</p>
-                                                    <div className="bg-[#fafaf9] rounded-lg p-3 mb-4 flex-1">
-                                                        <ul className="text-sm space-y-2 text-slate-700">
-                                                            {pkg.features.map((feature) => (
-                                                                <li key={feature} className="flex items-start gap-2">
-                                                                    <CheckCircle size={16} className="text-[#c9a961] mt-0.5 flex-shrink-0" />
-                                                                    <span className="flex-1">{feature}</span>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
-                                                        <div>
-                                                            <span className="block text-2xl font-semibold text-slate-900">{formatCurrency(pkg.price)}</span>
-                                                            <span className="text-xs text-slate-500">per plate</span>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => pkg.isAvailable && setSelectedPackageId(pkg.id)}
-                                                            disabled={!pkg.isAvailable}
-                                                            className={`py-2 px-5 rounded font-medium text-sm transition-all ${
-                                                                !pkg.isAvailable
-                                                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                                                    : pkg.id === selectedPackageId
-                                                                    ? 'bg-emerald-600 text-white shadow-md'
-                                                                    : 'bg-[#c9a961] text-white hover:bg-[#b89751] shadow-md'
-                                                            }`}
-                                                        >
-                                                            {pkg.id === selectedPackageId ? '✓ Added' : 'Select'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </article>
-                                        );
-                                    })}
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#42493e] mb-2 block" style={{ fontFamily: 'Manrope, sans-serif' }}>Venue</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {['all', 'indoor', 'outdoor'].map((option) => (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => setVenueFilter(option)}
+                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${venueFilter === option
+                                                ? 'bg-[#154212] text-white border-[#154212]'
+                                                : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#154212]/30'
+                                            }`}
+                                        >
+                                            {option === 'all' ? 'Any' : option === 'indoor' ? 'Indoor' : 'Outdoor'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#42493e] mb-2 block" style={{ fontFamily: 'Manrope, sans-serif' }}>Live Counter</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {[{ key: 'all', label: 'Any' }, { key: 'required', label: 'Required' }, { key: 'not-required', label: 'Not Needed' }].map((option) => (
+                                        <button
+                                            key={option.key}
+                                            type="button"
+                                            onClick={() => setLiveCounterFilter(option.key)}
+                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${liveCounterFilter === option.key
+                                                ? 'bg-[#154212] text-white border-[#154212]'
+                                                : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#154212]/30'
+                                            }`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                        <div className="fixed bottom-8 right-8 z-50">
-                            {selectedPackage && (
-                            <div className="bg-slate-900 text-white rounded-full shadow-2xl px-6 py-3 flex items-center gap-4">
+                    )}
+                </aside>
+
+                {/* ── RIGHT CONTENT AREA ── */}
+                <main className="flex-1 overflow-y-auto px-6 lg:px-12 py-10 custom-scrollbar bg-[#fcf9f4] lg:ml-[280px] xl:ml-[300px]">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="mb-12">
+                            <h1 className="text-4xl md:text-5xl font-extrabold text-[#154212] tracking-tight mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>Premium Meal Boxes</h1>
+                            <p className="text-[#42493e] text-lg max-w-2xl">{occasionData.description}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-32">
+                            {noPackages && (
+                                <div className="col-span-full bg-white rounded-[24px] p-12 text-center shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)]">
+                                    <p className="text-lg font-semibold text-[#154212]">No menus match your filters.</p>
+                                    <p className="text-sm text-[#42493e] mt-2">
+                                        Try adjusting the budget, diet, or cuisine filters to explore more options.
+                                    </p>
+                                </div>
+                            )}
+
+                            {!noPackages &&
+                                filteredPackages.map((pkg) => {
+                                    const dietStyles = dietBadgeStyles[pkg.diet] || dietBadgeStyles.veg;
+                                    const isSelected = pkg.id === selectedPackageId;
+
+                                    return (
+                                        <article
+                                            key={pkg.id}
+                                            role="button"
+                                            tabIndex={pkg.isAvailable ? 0 : -1}
+                                            onClick={() => pkg.isAvailable && setSelectedPackageId(pkg.id)}
+                                            onKeyDown={(e) =>
+                                                pkg.isAvailable && (e.key === 'Enter' || e.key === ' ')
+                                                    ? setSelectedPackageId(pkg.id)
+                                                    : null
+                                            }
+                                            className={`bg-white rounded-[24px] overflow-hidden transition-all duration-300 group flex flex-col h-full border hover:-translate-y-2 shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)] hover:shadow-[0_20px_40px_-8px_rgba(28,28,25,0.1)] cursor-pointer ${isSelected
+                                                ? 'border-[#154212] ring-2 ring-[#154212]/20'
+                                                : 'border-transparent hover:border-[#904b33]/20'
+                                            }`}
+                                        >
+                                            <div className="relative h-56 bg-[#f0ede9] overflow-hidden">
+                                                <img
+                                                    src={pkg.image || MEAL_FALLBACK_IMG}
+                                                    alt={pkg.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                    onError={(event) => {
+                                                        event.currentTarget.onerror = null;
+                                                        event.currentTarget.src = MEAL_FALLBACK_IMG;
+                                                    }}
+                                                />
+                                                {!pkg.isAvailable && (
+                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                        <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded">SOLD OUT</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="p-5 flex-1 flex flex-col">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-extrabold text-[#154212] tracking-tight text-xl leading-tight mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>{pkg.name}</h3>
+                                                    </div>
+                                                    <div className={`ml-2 flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${dietStyles.wrapper} flex-shrink-0`}>
+                                                        <div className={`w-2 h-2 rounded-full ${dietStyles.dot}`}></div>
+                                                        {dietStyles.label}
+                                                    </div>
+                                                </div>
+                                                <p className="text-[#42493e] text-sm mb-4 line-clamp-2">{pkg.description}</p>
+                                                <div className="bg-[#f6f3ee] rounded-xl p-3 mb-4 flex-1">
+                                                    <ul className="text-sm space-y-2 text-[#42493e]">
+                                                        {pkg.features.map((feature) => (
+                                                            <li key={feature} className="flex items-start gap-2">
+                                                                <CheckCircle size={16} className="text-[#904b33] mt-0.5 flex-shrink-0" />
+                                                                <span className="flex-1">{feature}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-auto pt-3">
+                                                    <div>
+                                                        <span className="block text-2xl font-extrabold text-[#154212]" style={{ fontFamily: 'Manrope, sans-serif' }}>{formatCurrency(pkg.price)}</span>
+                                                        <span className="text-xs text-[#42493e]">per plate</span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); pkg.isAvailable && handleProceedToCustomize(pkg); }}
+                                                        disabled={!pkg.isAvailable}
+                                                        className={`py-2 px-5 rounded-full font-bold text-sm transition-all shadow-sm ${!pkg.isAvailable
+                                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                            : isSelected
+                                                                ? 'bg-gradient-to-r from-[#154212] to-[#2d5a27] text-white shadow-[#154212]/30'
+                                                                : 'bg-gradient-to-r from-[#904b33] to-[#783922] text-white hover:shadow-md hover:-translate-y-0.5'
+                                                        }`}
+                                                    >
+                                                        {isSelected ? '✓ Selected' : 'Customize & Select'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                        </div>
+                    </div>
+
+                    {/* Floating checkout bar */}
+                    <div className="fixed bottom-8 right-8 z-50">
+                        {selectedPackage && (
+                            <div className="bg-[#154212] text-white rounded-full shadow-2xl px-6 py-3 flex items-center gap-4">
                                 <div className="text-sm">
-                                    <span className="uppercase text-xs text-slate-400 tracking-wide">ESTIMATE ({guestCount} GUESTS)</span>
+                                    <span className="uppercase text-xs text-white/60 tracking-wide">ESTIMATE ({guestCount} GUESTS)</span>
                                     <div className="font-semibold">{itemsAddedLabel}</div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => handleProceedToCustomize()}
-                                    className="px-6 py-2 rounded-full font-medium text-sm transition-all flex items-center gap-2 bg-[#c9a961] hover:bg-[#b89751] text-white"
+                                    className="px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-gradient-to-r from-[#904b33] to-[#783922] shadow-lg hover:shadow-[#904b33]/30 hover:-translate-y-0.5 text-white"
                                 >
                                     Proceed to Checkout
                                     <ArrowRight size={16} />
                                 </button>
                             </div>
-                            )}
-                        </div>
+                        )}
                     </div>
                 </main>
             </div>

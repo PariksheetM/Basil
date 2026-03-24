@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import AuthService from '../services/authService';
 import BrandLogo from './BrandLogo';
+import NavCartButton from './NavCartButton';
 import './HomePage.css';
 
 const heroSlides = [
@@ -128,7 +129,21 @@ const HomePage = () => {
     };
 
     const navigateToMealBoxes = () => {
-        const fallbackKey = selectedOccasionKey || 'corporate';
+        const storedCity = typeof window !== 'undefined' ? window.localStorage.getItem('selectedCity') : null;
+        if (!storedCity) {
+            navigate('/select-city');
+            return;
+        }
+
+        const storedOccasion = typeof window !== 'undefined'
+            ? (window.localStorage.getItem('selectedOccasionKey') || window.localStorage.getItem('selectedOccasion'))
+            : null;
+        if (!storedOccasion) {
+            navigate('/select-occasion');
+            return;
+        }
+
+        const fallbackKey = selectedOccasionKey || storedOccasion || 'corporate';
         const fallbackLabel = selectedOccasionLabel || occasionLabelMap[fallbackKey] || 'Corporate Event';
 
         if (typeof window !== 'undefined') {
@@ -197,9 +212,7 @@ const HomePage = () => {
                         />
                     </div>
                     <div className="nav-actions">
-                        <button type="button" className="ghost-link muted" onClick={handleLogout}>
-                            Logout
-                        </button>
+                        <NavCartButton />
                     </div>
                 </div>
             </header>
