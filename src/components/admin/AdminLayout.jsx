@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Utensils, Calendar, Users, BarChart3, Settings, Bell, LogOut, Search, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Utensils, Calendar, Users, BarChart3, LogOut, Package, ChevronRight } from 'lucide-react';
 import AuthService from '../../services/authService';
 
 const AdminLayout = () => {
@@ -31,97 +31,124 @@ const AdminLayout = () => {
         navigate('/admin/login');
     };
 
-    const menuItems = [
-        { icon: LayoutDashboard, label: 'Overview', path: '/admin' },
-        { icon: ShoppingBag, label: 'Orders', path: '/admin/orders' },
-        { icon: Utensils, label: 'Meal Management', path: '/admin/meal-plans' },
-        { icon: Calendar, label: 'Occasions', path: '/admin/occasions' },
-        { icon: Users, label: 'Customers', path: '/admin/customers' },
-        { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-        { icon: Settings, label: 'Settings', path: '/admin/settings' },
+    const menuGroups = [
+        {
+            label: 'Main',
+            items: [
+                { icon: LayoutDashboard, label: 'Overview',       path: '/admin' },
+                { icon: ShoppingBag,     label: 'Orders',         path: '/admin/orders' },
+            ],
+        },
+        {
+            label: 'Menu',
+            items: [
+                { icon: Utensils,  label: 'Meal Plans',     path: '/admin/meal-plans' },
+                { icon: Package,   label: 'Dish Catalogue', path: '/admin/dishes' },
+                { icon: Calendar,  label: 'Occasions',      path: '/admin/occasions' },
+            ],
+        },
+        {
+            label: 'Insights',
+            items: [
+                { icon: Users,     label: 'Customers',  path: '/admin/customers' },
+                { icon: BarChart3, label: 'Analytics',  path: '/admin/analytics' },
+            ],
+        },
     ];
 
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) =>
+        path === '/admin' ? location.pathname === '/admin' : location.pathname.startsWith(path);
+
+    const currentPageLabel = () => {
+        for (const group of menuGroups) {
+            for (const item of group.items) {
+                if (isActive(item.path)) return item.label;
+            }
+        }
+        return 'Admin Panel';
+    };
 
     return (
-        <div className="admin-bg">
-            <div className="flex min-h-screen">
-                {/* Sidebar */}
-                <aside className="nav-rail fixed top-0 left-0 h-full w-64 px-4 py-6 z-40">
-                    <div className="flex items-center gap-3 px-2 mb-8">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white font-bold">
-                            <Utensils size={18} />
+        <div className="admin-bg flex min-h-screen">
+            {/* ── Sidebar ──────────────────────────────────────────────────── */}
+            <aside className="nav-rail fixed top-0 left-0 h-full w-60 flex flex-col z-40">
+                {/* Logo */}
+                <div className="px-5 py-5 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                            <Utensils size={16} className="text-white" />
                         </div>
                         <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">FoodDash</p>
-                            <p className="text-base font-extrabold text-slate-900">Executive Suite</p>
+                            <p className="text-sm font-bold text-slate-900 leading-tight">Basil Admin</p>
+                            <p className="text-xs text-slate-400">Management Portal</p>
                         </div>
                     </div>
+                </div>
 
-                    <nav className="space-y-1">
-                        {menuItems.map((item) => (
-                            <button
-                                key={item.path}
-                                onClick={() => navigate(item.path)}
-                                className={`nav-item ${isActive(item.path) ? 'active' : ''} w-full`}
-                            >
-                                <item.icon size={18} />
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="mt-10 glass-card p-4 flex items-center gap-3">
-                        <div className="avatar text-sm">JW</div>
-                        <div className="flex-1">
-                            <p className="text-sm font-semibold text-slate-900">James Wilson</p>
-                            <p className="text-xs text-slate-500">Head Administrator</p>
+                {/* Navigation */}
+                <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+                    {menuGroups.map((group) => (
+                        <div key={group.label}>
+                            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                {group.label}
+                            </p>
+                            <div className="space-y-0.5">
+                                {group.items.map((item) => (
+                                    <button
+                                        key={item.path}
+                                        onClick={() => navigate(item.path)}
+                                        className={`nav-item w-full text-left ${isActive(item.path) ? 'active' : ''}`}
+                                    >
+                                        <item.icon size={16} className="shrink-0" />
+                                        <span className="flex-1">{item.label}</span>
+                                        {isActive(item.path) && <ChevronRight size={14} className="opacity-50" />}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <button onClick={handleLogout} className="text-slate-500 hover:text-slate-900" title="Logout">
-                            <LogOut size={16} />
+                    ))}
+                </nav>
+
+                {/* User profile */}
+                <div className="px-3 pb-4 border-t border-slate-100 pt-3">
+                    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-default">
+                        <div className="avatar shrink-0">A</div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-800 truncate">Administrator</p>
+                            <p className="text-xs text-slate-400 truncate">admin</p>
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            title="Sign out"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                        >
+                            <LogOut size={15} />
                         </button>
                     </div>
-                </aside>
-
-                {/* Main Content */}
-                <div className="flex-1 ml-64">
-                    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
-                        <div className="flex items-center justify-between px-6 py-4">
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input
-                                        className="soft-input pl-10 pr-12 w-80"
-                                        placeholder="Search for orders, meals, or analytics..."
-                                    />
-                                    <button className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">⌘K</button>
-                                </div>
-                                <div className="admin-chip primary">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                                    System Sync OK
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                    <p className="text-sm font-semibold text-slate-900">James Wilson</p>
-                                    <p className="text-xs text-slate-500">Head Administrator</p>
-                                </div>
-                                <div className="avatar">JW</div>
-                                <button className="text-slate-400 hover:text-slate-700">
-                                    <Bell size={18} />
-                                </button>
-                                <button className="text-slate-400 hover:text-slate-700">
-                                    <ChevronDown size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    </header>
-
-                    <main className="p-6 space-y-6">
-                        <Outlet />
-                    </main>
                 </div>
+            </aside>
+
+            {/* ── Main area ────────────────────────────────────────────────── */}
+            <div className="flex-1 ml-60 flex flex-col min-h-screen">
+                {/* Top header */}
+                <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
+                    <div className="flex items-center justify-between px-6 h-14">
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <span className="font-semibold text-slate-800">{currentPageLabel()}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                                Live
+                            </span>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page content */}
+                <main className="flex-1 p-6">
+                    <Outlet />
+                </main>
             </div>
         </div>
     );

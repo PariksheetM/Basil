@@ -64,6 +64,14 @@ try {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
+
+    // Add addons column if not present
+    $mpCols = array_column(
+        $db->query("PRAGMA table_info(meal_plans)")->fetchAll(PDO::FETCH_ASSOC), 'name'
+    );
+    if (!in_array('addons', $mpCols, true)) {
+        $db->exec("ALTER TABLE meal_plans ADD COLUMN addons TEXT");
+    };
     
     // Simple admin gate based on session token; GET is allowed publicly
     $headers = getallheaders();
@@ -134,23 +142,41 @@ try {
     };
 
     if ($method === 'GET') {
-        // Get all meal plans
-        $stmt = $db->query("SELECT * FROM meal_plans WHERE is_active = 1 ORDER BY display_order, id");
+        // Admin requests (with valid token) see ALL plans; public sees only active.
+        $isAdminGet = false;
+        if ($sessionToken) {
+            $aCheck = $db->prepare("SELECT u.role FROM user_sessions s JOIN users u ON s.user_id = u.id WHERE s.session_token = :tok AND s.expires_at > datetime('now')");
+            $aCheck->bindParam(':tok', $sessionToken);
+            $aCheck->execute();
+            $aRow = $aCheck->fetch(PDO::FETCH_ASSOC);
+            $isAdminGet = ($aRow && ($aRow['role'] ?? '') === 'admin');
+        }
+
+        if ($isAdminGet) {
+            $stmt = $db->query("SELECT * FROM meal_plans ORDER BY display_order, id");
+        } else {
+            $stmt = $db->query("SELECT * FROM meal_plans WHERE is_active = 1 ORDER BY display_order, id");
+        }
         $meals = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Format meals data
-        $formattedMeals = array_map(function($meal) use ($normalizeItemsOut) {
-            return [
+        $formattedMeals = array_map(function($meal) use ($normalizeItemsOut, $isAdminGet) {
+            $row = [
                 'id' => (int)$meal['id'],
                 'name' => $meal['name'],
                 'occasion' => $meal['occasion'],
                 'price' => (float)$meal['price'],
                 'type' => $meal['type'],
                 'items' => $normalizeItemsOut($meal['items']),
+                'addons' => json_decode($meal['addons'] ?? '[]', true) ?: [],
                 'image' => $meal['image_url'],
                 'recommended' => (bool)$meal['recommended'],
-                'popular' => (bool)$meal['popular']
+                'popular' => (bool)$meal['popular'],
             ];
+            if ($isAdminGet) {
+                $row['is_active'] = (bool)$meal['is_active'];
+            }
+            return $row;
         }, $meals);
         
         http_response_code(200);
@@ -168,14 +194,15 @@ try {
         }
         
         $stmt = $db->prepare("INSERT INTO meal_plans 
-                             (name, occasion, price, type, items, image_url, recommended, popular, created_at) 
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))");
+                             (name, occasion, price, type, items, addons, image_url, recommended, popular, created_at) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))");
         $stmt->execute([
             $data['name'],
             $data['occasion'],
             $data['price'],
             $data['type'] ?? 'veg',
             $normalizeItemsIn($data['items'] ?? ''),
+            json_encode($data['addons'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             $data['image'] ?? '',
             $data['recommended'] ? 1 : 0,
             $data['popular'] ? 1 : 0
@@ -198,21 +225,44 @@ try {
             throw new Exception('Meal ID is required');
         }
         
-        $stmt = $db->prepare("UPDATE meal_plans SET 
-                             name = ?, occasion = ?, price = ?, type = ?, items = ?, 
-                             image_url = ?, recommended = ?, popular = ?, updated_at = datetime('now')
-                             WHERE id = ?");
-        $stmt->execute([
-            $data['name'],
-            $data['occasion'],
-            $data['price'],
-            $data['type'],
-            $normalizeItemsIn($data['items'] ?? ''),
-            $data['image'] ?? '',
-            $data['recommended'] ? 1 : 0,
-            $data['popular'] ? 1 : 0,
-            $data['id']
-        ]);
+        // Allow updating is_active if explicitly provided in payload
+        $hasIsActive = array_key_exists('is_active', $data);
+        if ($hasIsActive) {
+            $stmt = $db->prepare("UPDATE meal_plans SET 
+                                 name = ?, occasion = ?, price = ?, type = ?, items = ?, addons = ?,
+                                 image_url = ?, recommended = ?, popular = ?, is_active = ?, updated_at = datetime('now')
+                                 WHERE id = ?");
+            $stmt->execute([
+                $data['name'],
+                $data['occasion'],
+                $data['price'],
+                $data['type'],
+                $normalizeItemsIn($data['items'] ?? ''),
+                json_encode($data['addons'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                $data['image'] ?? '',
+                $data['recommended'] ? 1 : 0,
+                $data['popular'] ? 1 : 0,
+                $data['is_active'] ? 1 : 0,
+                $data['id']
+            ]);
+        } else {
+            $stmt = $db->prepare("UPDATE meal_plans SET 
+                                 name = ?, occasion = ?, price = ?, type = ?, items = ?, addons = ?,
+                                 image_url = ?, recommended = ?, popular = ?, updated_at = datetime('now')
+                                 WHERE id = ?");
+            $stmt->execute([
+                $data['name'],
+                $data['occasion'],
+                $data['price'],
+                $data['type'],
+                $normalizeItemsIn($data['items'] ?? ''),
+                json_encode($data['addons'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                $data['image'] ?? '',
+                $data['recommended'] ? 1 : 0,
+                $data['popular'] ? 1 : 0,
+                $data['id']
+            ]);
+        }
         
         http_response_code(200);
         echo json_encode([
@@ -221,14 +271,14 @@ try {
         ]);
         
     } elseif ($method === 'DELETE') {
-        // Delete meal plan (soft delete)
+        // Delete meal plan (permanent)
         $data = json_decode(file_get_contents('php://input'), true);
         
         if (!isset($data['id'])) {
             throw new Exception('Meal ID is required');
         }
         
-        $stmt = $db->prepare("UPDATE meal_plans SET is_active = 0, updated_at = datetime('now') WHERE id = ?");
+        $stmt = $db->prepare("DELETE FROM meal_plans WHERE id = ?");
         $stmt->execute([$data['id']]);
         
         http_response_code(200);

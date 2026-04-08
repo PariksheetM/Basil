@@ -129,6 +129,77 @@ class Database {
             $conn->exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
         }
 
+        // ── Bulk-ordering: dishes ────────────────────────────────
+        // ── Dishes: migrate to nullable bulk fields if needed ──────────────
+        // Check if the old schema has bulk_quantity NOT NULL and migrate
+        $dishCols = $conn->query("PRAGMA table_info(dishes)")->fetchAll(PDO::FETCH_ASSOC);
+        $hasBulk = count(array_filter($dishCols, fn($c) => $c['name'] === 'bulk_quantity')) > 0;
+        $bulkNullable = false;
+        foreach ($dishCols as $col) {
+            if ($col['name'] === 'bulk_quantity' && $col['notnull'] == 0) {
+                $bulkNullable = true;
+            }
+        }
+        if ($hasBulk && !$bulkNullable) {
+            // Migrate: rename old, create new without NOT NULL on bulk fields, copy, drop old
+            $conn->exec("ALTER TABLE dishes RENAME TO dishes_old");
+        }
+        if (!$hasBulk || ($hasBulk && !$bulkNullable)) {
+        $conn->exec("CREATE TABLE IF NOT EXISTS dishes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            bulk_quantity REAL,
+            unit TEXT DEFAULT 'kg',
+            bulk_price REAL,
+            serves_people INTEGER,
+            description TEXT,
+            is_active INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+        }
+        // Copy existing rows from old table if migration happened
+        $oldExists = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='dishes_old'")->fetchColumn();
+        if ($oldExists) {
+            $conn->exec("INSERT INTO dishes (id, name, category, bulk_quantity, unit, bulk_price, serves_people, description, is_active, created_at, updated_at)
+                         SELECT id, name, category, bulk_quantity, unit, bulk_price, serves_people, description, is_active, created_at, updated_at FROM dishes_old");
+            $conn->exec("DROP TABLE dishes_old");
+        }
+        // Add image column to dishes if not present
+        $dishColNames = array_column(
+            $conn->query("PRAGMA table_info(dishes)")->fetchAll(PDO::FETCH_ASSOC), 'name'
+        );
+        if (!in_array('image', $dishColNames, true)) {
+            $conn->exec("ALTER TABLE dishes ADD COLUMN image TEXT");
+        }
+
+        // ── Bulk-ordering: bulk meal plans ───────────────────────
+        $conn->exec("CREATE TABLE IF NOT EXISTS bulk_meal_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            occasion TEXT NOT NULL,
+            meal_type TEXT NOT NULL DEFAULT 'lunch',
+            num_people INTEGER NOT NULL,
+            grand_total REAL NOT NULL DEFAULT 0,
+            notes TEXT,
+            is_active INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // ── junction: which dishes go into each bulk meal plan ───
+        $conn->exec("CREATE TABLE IF NOT EXISTS bulk_meal_dishes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            bulk_meal_id INTEGER NOT NULL,
+            dish_id INTEGER NOT NULL,
+            num_people INTEGER NOT NULL,
+            required_quantity REAL NOT NULL,
+            total_cost REAL NOT NULL,
+            FOREIGN KEY (bulk_meal_id) REFERENCES bulk_meal_plans(id) ON DELETE CASCADE,
+            FOREIGN KEY (dish_id) REFERENCES dishes(id) ON DELETE RESTRICT
+        )");
+
         return $conn;
     }
 

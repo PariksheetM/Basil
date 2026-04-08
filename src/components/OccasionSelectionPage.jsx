@@ -72,6 +72,12 @@ const OccasionSelectionPage = () => {
             window.localStorage.setItem('selectedOccasionLabel', selectedOccasion.label);
         }
 
+        // Custom Event → dedicated dish picker + quote flow
+        if (selectedOccasion.key === 'other') {
+            navigate('/custom-event');
+            return;
+        }
+
         // Auto navigate to the menu explicitly for the selected occasion immediately upon selection
         navigate('/occasion-menu', { state: { occasion: selectedOccasion.key } });
     };
@@ -97,20 +103,20 @@ const OccasionSelectionPage = () => {
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
-                <div className="text-center mb-16">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-xs font-bold text-[#904b33] uppercase tracking-[0.2em] shadow-sm mb-6">
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+                <div className="text-center mb-8">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-xs font-bold text-[#904b33] uppercase tracking-[0.18em] shadow-sm mb-4">
                         Step 2 of 2
                     </span>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-[#154212] tracking-tight mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-[#154212] tracking-tight mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                         What&rsquo;s the occasion?
                     </h1>
-                    <p className="text-base md:text-lg text-[#42493e] max-w-2xl mx-auto leading-relaxed">
-                        We&rsquo;ll tailor recommendations and pricing for your event type. Select the experience that fits your gathering.
+                    <p className="text-sm text-[#42493e] max-w-lg mx-auto leading-relaxed">
+                        We&rsquo;ll tailor recommendations for your event type.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {occasionOptions.map((occasion) => {
                         const Icon = occasion.icon;
                         return (
@@ -118,19 +124,20 @@ const OccasionSelectionPage = () => {
                                 key={occasion.key}
                                 type="button"
                                 onClick={() => handleSelect(occasion.key)}
-                                className="group flex flex-col items-center gap-4 rounded-[24px] bg-white p-8 transition-all duration-300 text-center shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)] hover:-translate-y-2 hover:shadow-[0_20px_40px_-8px_rgba(28,28,25,0.1)] border border-transparent hover:border-[#904b33]/20 cursor-pointer"
+                                className="group flex items-center gap-3.5 rounded-2xl bg-white px-4 py-3.5 transition-all duration-200 text-left shadow-[0_2px_8px_rgba(28,28,25,0.05)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(28,28,25,0.10)] border border-[#f0ede9] hover:border-[#904b33]/25 cursor-pointer"
                             >
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${occasion.background} transition-transform duration-300 group-hover:scale-110`}>
-                                    <Icon className={`w-8 h-8 ${occasion.color}`} />
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${occasion.background} transition-transform duration-200 group-hover:scale-105`}>
+                                    <Icon className={`w-5 h-5 ${occasion.color}`} strokeWidth={1.7} />
                                 </div>
-                                <span className="text-[1.05rem] font-bold text-[#154212] leading-tight mt-2">{occasion.label}</span>
+                                <span className="text-sm font-bold text-[#154212] leading-snug">{occasion.label}</span>
+                                <svg className="ml-auto w-4 h-4 text-[#c2c9bb] group-hover:text-[#904b33] transition-colors flex-shrink-0" fill="none" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             </button>
                         );
                     })}
                 </div>
 
-                <div className="mt-16 text-center">
-                    <p className="text-sm text-[#42493e] max-w-xl mx-auto">
+                <div className="mt-8 text-center">
+                    <p className="text-xs text-[#42493e] max-w-xl mx-auto">
                         Need something custom? Choose &ldquo;Custom Event&rdquo; and our planners will help you craft a bespoke menu.
                     </p>
                 </div>

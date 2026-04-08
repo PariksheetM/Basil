@@ -1,17 +1,20 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import {
+    ArrowLeft, MapPin,
+    Building, Building2, Landmark, Hotel, Warehouse, Store, School, Factory,
+} from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 const cityOptions = [
-    { name: 'Pune', accent: 'text-[#904b33]', background: 'bg-[#904b33]/10' },
-    { name: 'Bangalore', accent: 'text-[#154212]', background: 'bg-[#154212]/10' },
-    { name: 'Gurgaon', accent: 'text-[#2d5a27]', background: 'bg-[#2d5a27]/10' },
-    { name: 'Delhi', accent: 'text-[#c3a066]', background: 'bg-[#c3a066]/10' },
-    { name: 'Mumbai', accent: 'text-[#783922]', background: 'bg-[#783922]/10' },
-    { name: 'Hyderabad', accent: 'text-[#3b6934]', background: 'bg-[#3b6934]/10' },
-    { name: 'Chennai', accent: 'text-[#a67838]', background: 'bg-[#a67838]/10' },
-    { name: 'Noida', accent: 'text-[#60233e]', background: 'bg-[#60233e]/10' },
+    { name: 'Pune',      Icon: Building,   accent: 'text-[#904b33]', bg: 'bg-[#904b33]/10' },
+    { name: 'Bangalore', Icon: Building2,  accent: 'text-[#154212]', bg: 'bg-[#154212]/10' },
+    { name: 'Gurgaon',   Icon: Landmark,   accent: 'text-[#2d5a27]', bg: 'bg-[#2d5a27]/10' },
+    { name: 'Delhi',     Icon: Hotel,      accent: 'text-[#c3a066]', bg: 'bg-[#c3a066]/10' },
+    { name: 'Mumbai',    Icon: Warehouse,  accent: 'text-[#783922]', bg: 'bg-[#783922]/10' },
+    { name: 'Hyderabad', Icon: Store,      accent: 'text-[#3b6934]', bg: 'bg-[#3b6934]/10' },
+    { name: 'Chennai',   Icon: School,     accent: 'text-[#a67838]', bg: 'bg-[#a67838]/10' },
+    { name: 'Noida',     Icon: Factory,    accent: 'text-[#60233e]', bg: 'bg-[#60233e]/10' },
 ];
 
 const CitySelectionPage = () => {
@@ -49,38 +52,41 @@ const CitySelectionPage = () => {
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
-                <div className="text-center mb-16">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-xs font-bold text-[#904b33] uppercase tracking-[0.2em] shadow-sm mb-6">
-                        <MapPin className="w-4 h-4" />
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
+                <div className="text-center mb-10">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-xs font-bold text-[#904b33] uppercase tracking-[0.18em] shadow-sm mb-4">
+                        <MapPin className="w-3.5 h-3.5" />
                         Step 1 of 2
                     </span>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-[#154212] tracking-tight mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-[#154212] tracking-tight mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
                         Where should we deliver?
                     </h1>
-                    <p className="text-base md:text-lg text-[#42493e] max-w-2xl mx-auto leading-relaxed">
-                        Choose the city where your event is taking place. This helps us surface the right kitchens and delivery partners for you.
+                    <p className="text-sm md:text-base text-[#42493e] max-w-xl mx-auto leading-relaxed">
+                        Choose the city where your event is taking place.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                    {cityOptions.map((city) => (
-                        <button
-                            key={city.name}
-                            type="button"
-                            onClick={() => handleSelect(city.name)}
-                            className="group flex flex-col items-center gap-3 rounded-[24px] bg-white p-6 transition-all duration-300 text-center shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)] hover:-translate-y-2 hover:shadow-[0_20px_40px_-8px_rgba(28,28,25,0.1)] border border-transparent hover:border-[#904b33]/20 cursor-pointer"
-                        >
-                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${city.background} transition-transform duration-300 group-hover:scale-110`}>
-                                <span className={`text-xl font-bold ${city.accent}`}>{city.name.charAt(0)}</span>
-                            </div>
-                            <span className="text-sm font-bold text-[#154212] uppercase tracking-wide mt-2">{city.name}</span>
-                        </button>
-                    ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {cityOptions.map((city) => {
+                        const Icon = city.Icon;
+                        return (
+                            <button
+                                key={city.name}
+                                type="button"
+                                onClick={() => handleSelect(city.name)}
+                                className="group flex flex-col items-center gap-2.5 rounded-2xl bg-white px-4 py-5 transition-all duration-200 text-center shadow-[0_2px_8px_rgba(28,28,25,0.06)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(28,28,25,0.10)] border border-[#f0ede9] hover:border-[#904b33]/25 cursor-pointer"
+                            >
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${city.bg} transition-transform duration-200 group-hover:scale-110`}>
+                                    <Icon className={`w-6 h-6 ${city.accent}`} strokeWidth={1.6} />
+                                </div>
+                                <span className="text-xs font-bold text-[#154212] uppercase tracking-wide">{city.name}</span>
+                            </button>
+                        );
+                    })}
                 </div>
 
-                <div className="mt-16 text-center">
-                    <p className="text-sm text-[#42493e] italic">
+                <div className="mt-10 text-center">
+                    <p className="text-xs text-[#42493e] italic">
                         You can always change the city later from the homepage.
                     </p>
                 </div>

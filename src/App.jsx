@@ -11,6 +11,7 @@ import CheckoutPage from './components/CheckoutPage';
 import OccasionMenuPage from './components/OccasionMenuPage';
 import CitySelectionPage from './components/CitySelectionPage';
 import OccasionSelectionPage from './components/OccasionSelectionPage';
+import CustomEventPage from './components/CustomEventPage';
 import BowlPage from './components/BowlPage';
 import BuffetPage from './components/BuffetPage';
 import OrdersPage from './components/OrdersPage';
@@ -22,6 +23,7 @@ import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminOrders from './components/admin/AdminOrders';
 import AdminMealPlans from './components/admin/AdminMealPlans';
+import AdminDishes from './components/admin/AdminDishes';
 import AdminCustomers from './components/admin/AdminCustomers';
 import AdminAnalytics from './components/admin/AdminAnalytics';
 import AdminOccasions from './components/admin/AdminOccasions';
@@ -41,6 +43,7 @@ function App() {
                     <Route path="/select-city" element={<CitySelectionPage />} />
                     <Route path="/select-occasion" element={<OccasionSelectionPage />} />
                     <Route path="/occasion-menu" element={<OccasionMenuPage />} />
+                    <Route path="/custom-event" element={<CustomEventPage />} />
                     <Route path="/meal-box" element={<MealBoxPage />} />
                     <Route path="/snack-box" element={<SnackBoxPage />} />
                     <Route path="/bowls" element={<BowlPage />} />
@@ -57,6 +60,7 @@ function App() {
                         <Route index element={<AdminDashboard />} />
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="meal-plans" element={<AdminMealPlans />} />
+                        <Route path="dishes" element={<AdminDishes />} />
                         <Route path="occasions" element={<AdminOccasions />} />
                         <Route path="customers" element={<AdminCustomers />} />
                         <Route path="analytics" element={<AdminAnalytics />} />

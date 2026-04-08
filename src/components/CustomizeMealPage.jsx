@@ -597,6 +597,71 @@ const buildSectionsFromCategoryItems = (categoryItems = [], fallbackImage = '') 
     return sections.length ? sections : null;
 };
 
+// Build merged sections: category items + addons merged into matching categories
+const buildMergedSections = (categoryItems = [], addons = [], fallbackImage = '') => {
+    if (!Array.isArray(categoryItems) || !categoryItems.length) return null;
+
+    const sections = categoryItems
+        .filter((cat) => cat.name && Array.isArray(cat.items) && cat.items.length)
+        .map((cat) => ({
+            id: `cat-${cat.id || cat.name}`,
+            title: cat.name,
+            helper: `${cat.items.length} Included`,
+            maxSelection: cat.items.length, // quota = number of included items
+            _includedCount: cat.items.length,
+            items: cat.items.map((item) => ({
+                id: item.id || `item-${item.name}`,
+                name: item.name,
+                description: item.type === 'non-veg' ? 'Non-Veg' : item.type === 'satvik' ? 'Satvik' : 'Veg',
+                priceDelta: 0,
+                type: item.type || 'veg',
+                defaultSelected: true,
+                included: true,
+                isAddon: false,
+                image: item.image || fallbackImage,
+            })),
+        }));
+
+    if (!sections.length) return null;
+
+    // Merge each addon into its matching category section
+    const orphanAddons = [];
+    (addons || []).forEach((a) => {
+        const matchIdx = sections.findIndex(
+            (s) => s.title.toLowerCase() === (a.category || '').toLowerCase()
+        );
+        const addonItem = {
+            id: `addon-${a.id}`,
+            name: a.name,
+            description: `Optional upgrade`,
+            priceDelta: Number(a.pricePerPerson) || 0,
+            type: a.type || 'veg',
+            defaultSelected: false,
+            isAddon: true,
+            image: a.image || fallbackImage,
+        };
+        if (matchIdx >= 0) {
+            sections[matchIdx].items.push(addonItem);
+        } else {
+            orphanAddons.push(addonItem);
+        }
+    });
+
+    // Unmatched addons → their own section
+    if (orphanAddons.length) {
+        sections.push({
+            id: 'addons-misc',
+            title: 'Optional Upgrades',
+            helper: 'Add-on',
+            maxSelection: orphanAddons.length,
+            _includedCount: 0,
+            items: orphanAddons,
+        });
+    }
+
+    return sections;
+};
+
 const formatCurrency = (value) => `₹${value.toLocaleString('en-IN')}`;
 
 export default function CustomizeMealPage() {
@@ -617,6 +682,7 @@ export default function CustomizeMealPage() {
 
     // For admin-created plans (id = "remote-N"), fetch live meal data to get categoryItems
     const [apiFetchedCategoryItems, setApiFetchedCategoryItems] = useState(null);
+    const [apiFetchedAddons, setApiFetchedAddons] = useState(null);
     useEffect(() => {
         const pkgId = routeState.package?.id || '';
         if (!pkgId.startsWith('remote-')) return;
@@ -630,6 +696,9 @@ export default function CustomizeMealPage() {
                 const raw = meal.items;
                 if (Array.isArray(raw) && raw.length && raw[0]?.items) {
                     setApiFetchedCategoryItems(raw);
+                }
+                if (Array.isArray(meal.addons) && meal.addons.length) {
+                    setApiFetchedAddons(meal.addons);
                 }
             })
             .catch(() => {});
@@ -667,22 +736,21 @@ export default function CustomizeMealPage() {
         [packageCustomization, packageInfo.diet, packageImage, routeState.preference]
     );
 
-    // Admin-added meal plan: build sections from categoryItems
+    // Admin-added meal plan: build sections from categoryItems + addons
     // Priority: live API fetch > navigate-state categoryItems > customization
     const adminCategorySections = useMemo(() => {
-        // 1. Live-fetched items (most reliable)
+        let categoryItems = null;
         if (apiFetchedCategoryItems) {
-            const s = buildSectionsFromCategoryItems(apiFetchedCategoryItems, packageImage);
-            if (s?.length) return s;
+            categoryItems = apiFetchedCategoryItems;
+        } else if (packageInfo.categoryItems) {
+            categoryItems = packageInfo.categoryItems;
         }
-        // 2. Passed through navigate state
-        const passedItems = packageInfo.categoryItems;
-        if (passedItems) {
-            const s = buildSectionsFromCategoryItems(passedItems, packageImage);
-            if (s?.length) return s;
-        }
-        return null;
-    }, [apiFetchedCategoryItems, packageInfo.categoryItems, packageImage]);
+        if (!categoryItems) return null;
+
+        const addons = apiFetchedAddons || [];
+        const sections = buildMergedSections(categoryItems, addons, packageImage);
+        return sections?.length ? sections : null;
+    }, [apiFetchedCategoryItems, apiFetchedAddons, packageInfo.categoryItems, packageImage]);
 
     const menuSections = useMemo(() => {
         // Admin-panel sections take top priority for remote packages
@@ -775,8 +843,26 @@ export default function CustomizeMealPage() {
                 current.delete(item.id);
             } else {
                 const section = menuSections.find((s) => s.id === sectionId);
-                if (section?.maxSelection && current.size >= section.maxSelection) {
-                    return prev;
+                const maxSel = section?.maxSelection;
+                if (maxSel && current.size >= maxSel) {
+                    const isAddonItem = item.isAddon || item.priceDelta > 0;
+                    if (isAddonItem) {
+                        // Swap: remove the first normal (free) item to make room for the addon
+                        const normalItem = (section.items || []).find(
+                            (i) => !(i.isAddon || i.priceDelta > 0) && current.has(i.id)
+                        );
+                        if (normalItem) {
+                            current.delete(normalItem.id);
+                        } else {
+                            // All selected are addons — swap the first selected one
+                            const [first] = current;
+                            if (first) current.delete(first);
+                            else return prev;
+                        }
+                    } else {
+                        // Normal item at max — do nothing
+                        return prev;
+                    }
                 }
                 current.add(item.id);
             }
@@ -1029,97 +1115,153 @@ export default function CustomizeMealPage() {
                         </aside>
 
                         {/* ── RIGHT CONTENT: Menu Sections ── */}
-                        <section className="lg:col-span-8 space-y-10">
+                        <section className="lg:col-span-8 space-y-3">
                             {/* Veg / Non-Veg Tab Switcher */}
                             {isBothDiet && (
-                                <div className="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-[0_4px_16px_-4px_rgba(28,28,25,0.06)] border border-[#c2c9bb]/20 w-fit">
+                                <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm border border-[#c2c9bb]/20 w-fit mb-4">
                                     <button
                                         type="button"
                                         onClick={() => setActiveDietTab('veg')}
-                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
                                             activeDietTab === 'veg'
-                                                ? 'bg-[#154212] text-white shadow-md'
+                                                ? 'bg-[#154212] text-white shadow-sm'
                                                 : 'text-[#42493e] hover:bg-[#f6f3ee]'
                                         }`}
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                                         Veg Menu
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setActiveDietTab('non-veg')}
-                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
                                             activeDietTab === 'non-veg'
-                                                ? 'bg-[#904b33] text-white shadow-md'
+                                                ? 'bg-[#904b33] text-white shadow-sm'
                                                 : 'text-[#42493e] hover:bg-[#f6f3ee]'
                                         }`}
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                                        <span className="w-2 h-2 rounded-full bg-rose-400"></span>
                                         Non-Veg Menu
                                     </button>
                                 </div>
                             )}
 
-                            {filteredMenuSections.map((section, index) => (
-                                <div key={section.id} className="space-y-5">
-                                    {/* Section Header */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-[#154212] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                                {index + 1}
+                            {filteredMenuSections.map((section, sectionIdx) => {
+                                const selectedIds = selectedMap[section.id] || [];
+                                const selectedCount = selectedIds.length;
+                                const quota = section.maxSelection || section.items.length;
+                                const hasAddons = section.items.some((i) => i.isAddon || i.priceDelta > 0);
+
+                                return (
+                                    <div key={section.id} className="bg-white rounded-2xl border border-[#e8e3db] overflow-hidden shadow-[0_2px_8px_-2px_rgba(28,28,25,0.05)]">
+                                        {/* Section header */}
+                                        <div className="flex items-center justify-between px-4 py-3 bg-[#f9f7f4] border-b border-[#ede9e2]">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="w-6 h-6 bg-[#154212] text-white rounded-full text-xs font-bold flex items-center justify-center shrink-0 leading-none">
+                                                    {sectionIdx + 1}
+                                                </span>
+                                                <h3 className="text-sm font-bold text-[#1c1c19]" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                                    {section.title}
+                                                </h3>
+                                                <span className="text-xs text-[#42493e]/40 font-medium">
+                                                    {selectedCount}/{quota}
+                                                </span>
+                                                {hasAddons && (
+                                                    <span className="text-[10px] font-semibold text-[#904b33] bg-[#904b33]/8 px-2 py-0.5 rounded-full">
+                                                        Upgrades available
+                                                    </span>
+                                                )}
                                             </div>
-                                            <h3 className="text-2xl font-extrabold text-[#154212] tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>{section.title}</h3>
+                                            <span className="text-[10px] font-bold text-[#42493e]/40 uppercase tracking-wider">
+                                                {section.helper}
+                                            </span>
                                         </div>
-                                        <span className="text-xs font-semibold text-[#42493e]/50 uppercase tracking-wider">
-                                            {section.helper}
-                                        </span>
-                                    </div>
 
-                                    {/* Item Cards Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {section.items.map((item) => {
-                                            const isSelected = selectedMap[section.id]?.includes(item.id);
-                                            const cardImage = item.image || packageImage || IMAGE_FALLBACK;
+                                        {/* Items list */}
+                                        <div className="divide-y divide-[#f5f2ee]">
+                                            {section.items.map((item) => {
+                                                const isSelected = selectedIds.includes(item.id);
+                                                const isAddonItem = item.isAddon || item.priceDelta > 0;
+                                                const cardImage = item.image || packageImage || IMAGE_FALLBACK;
 
-                                            return (
-                                                <button
-                                                    key={item.id}
-                                                    type="button"
-                                                    onClick={() => toggleSelection(section.id, item)}
-                                                    className={`group relative bg-white rounded-[20px] p-4 transition-all duration-300 text-left border-2 ${
-                                                        isSelected
-                                                            ? 'border-[#904b33] shadow-[0_8px_24px_-8px_rgba(144,75,51,0.15)]'
-                                                            : 'border-transparent shadow-[0_4px_16px_-4px_rgba(28,28,25,0.06)] hover:shadow-[0_8px_24px_-8px_rgba(28,28,25,0.1)] hover:border-[#c2c9bb]/40'
-                                                    }`}
-                                                >
-                                                    <div className="flex gap-4">
-                                                        <div
-                                                            className="w-[72px] h-[72px] rounded-2xl bg-cover bg-center shrink-0 ring-1 ring-[#c2c9bb]/20"
-                                                            style={{ backgroundImage: `url(${imgUrl(cardImage)})` }}
-                                                        ></div>
+                                                return (
+                                                    <button
+                                                        key={item.id}
+                                                        type="button"
+                                                        onClick={() => toggleSelection(section.id, item)}
+                                                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                                                            isSelected
+                                                                ? 'bg-[#fdf7f5]'
+                                                                : 'hover:bg-[#fafaf8]'
+                                                        }`}
+                                                    >
+                                                        {/* Image */}
+                                                        <img
+                                                            src={imgUrl(cardImage)}
+                                                            alt={item.name}
+                                                            className="w-10 h-10 rounded-lg object-cover shrink-0 ring-1 ring-[#c2c9bb]/20"
+                                                            onError={(e) => { e.target.src = IMAGE_FALLBACK; }}
+                                                        />
+
+                                                        {/* Name + type */}
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex justify-between items-start gap-2">
-                                                                <h4 className="font-bold text-[#1c1c19] text-sm leading-snug" style={{ fontFamily: 'Manrope, sans-serif' }}>{item.name}</h4>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className={`w-2 h-2 rounded-sm shrink-0 ${
+                                                                    item.type === 'non-veg'
+                                                                        ? 'bg-red-500'
+                                                                        : item.type === 'satvik'
+                                                                        ? 'bg-amber-500'
+                                                                        : 'bg-green-600'
+                                                                }`} />
+                                                                <p className="text-sm font-semibold text-[#1c1c19] truncate leading-tight">{item.name}</p>
+                                                            </div>
+                                                            {isAddonItem && (
+                                                                <p className="text-[10px] text-[#42493e]/40 mt-0.5 leading-tight">
+                                                                    Selects replaces one included item
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Price / Included badge */}
+                                                        <div className="shrink-0 flex items-center gap-2.5">
+                                                            {isAddonItem ? (
+                                                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full transition-colors ${
+                                                                    isSelected
+                                                                        ? 'bg-[#904b33] text-white'
+                                                                        : 'bg-[#904b33]/10 text-[#904b33]'
+                                                                }`}>
+                                                                    +₹{item.priceDelta}/guest
+                                                                </span>
+                                                            ) : (
+                                                                <span className={`text-xs font-semibold ${
+                                                                    isSelected ? 'text-[#154212]' : 'text-[#42493e]/30'
+                                                                }`}>
+                                                                    Included
+                                                                </span>
+                                                            )}
+
+                                                            {/* Selection circle */}
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                                                isSelected
+                                                                    ? isAddonItem
+                                                                        ? 'bg-[#904b33] border-[#904b33]'
+                                                                        : 'bg-[#154212] border-[#154212]'
+                                                                    : 'border-[#d0ccc5] bg-white'
+                                                            }`}>
                                                                 {isSelected && (
-                                                                    <div className="w-6 h-6 bg-[#904b33] rounded-full flex items-center justify-center flex-shrink-0">
-                                                                        <CheckCircle2 className="w-4 h-4 text-white" strokeWidth={2.5} />
-                                                                    </div>
+                                                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                                                                        <path d="M2 6l3 3 5-5" />
+                                                                    </svg>
                                                                 )}
                                                             </div>
-                                                            <p className="text-xs text-[#42493e]/60 mt-1 leading-snug line-clamp-2">{item.description}</p>
-                                                            <p className={`text-sm font-bold mt-2 ${
-                                                                item.priceDelta > 0 ? 'text-[#42493e]' : 'text-[#154212]'
-                                                            }`}>
-                                                                {item.priceDelta > 0 ? `+ ${formatCurrency(item.priceDelta)}/guest` : 'Included'}
-                                                            </p>
                                                         </div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </section>
                     </div>
                 </div>

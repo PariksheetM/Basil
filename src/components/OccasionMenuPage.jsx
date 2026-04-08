@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Minus, Users, Sliders, Leaf } from 'lucide-react';
 import { API_BASE_URL } from '../utils/api.js';
@@ -38,1015 +38,7 @@ const dietFilterLabels = {
 
 const formatCurrency = (value) => `₹${value.toLocaleString('en-IN')}`;
 const MEAL_FALLBACK_IMG = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80';
-const mealPackagesByOccasion = {
-    corporate: {
-        displayName: 'Corporate Catering',
-        description: 'Business-ready menus calibrated for boardrooms, workshops, and town halls.',
-        defaultGuests: 80,
-        defaultBudget: 350,
-        tags: ['Professional', 'Hygienic', 'Bulk orders'],
-        packages: [
-            {
-                id: 'corporate-executive-lunch',
-                name: 'Executive Lunch Box',
-                description: 'Individually packed gourmet lunch with premium gravies and accompaniments.',
-                cuisine: 'North Indian',
-                diet: 'veg',
-                price: 325,
-                image: '/meal-box.jpg',
-                badge: { label: 'BOARDROOM READY', icon: 'workspace_premium', classes: 'bg-blue-100 text-blue-600' },
-                bestFor: 'Best for 40-200 guests',
-                features: [
-                    'Paneer Lababdar + Dal Makhani',
-                    'Jeera Rice & Butter Naan',
-                    'Mini Salad & Dessert',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                highlighted: true,
-                isAvailable: true,
-                customization: {
-                    category: 'EXECUTIVE',
-                    basePrice: 325,
-                    proteins: [
-                        { id: 'exec-paneer', label: 'Paneer Lababdar', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'exec-dal', label: 'Dal Makhani', priceDelta: 0, includedLabel: 'Included' },
-                        { id: 'exec-chicken', label: 'Butter Chicken', priceDelta: 45, includedLabel: '+ ₹45' },
-                    ],
-                    bases: [
-                        { id: 'exec-jeera', label: 'Jeera Rice', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'exec-naan', label: 'Butter Naan (x2)', priceDelta: 20, includedLabel: '+ ₹20' },
-                    ],
-                    addOns: [
-                        { id: 'exec-dessert', label: 'Mini Gulab Jamun', priceDelta: 25, description: 'Two pieces' },
-                        { id: 'exec-salad', label: 'Kachumber Salad', priceDelta: 15, description: 'Fresh garnish' },
-                    ],
-                },
-            },
-            {
-                id: 'corporate-sandwich-wrap',
-                name: 'Sandwich & Wrap Combo',
-                description: 'Assorted gourmet sandwiches and wraps with crisp sides and beverages.',
-                cuisine: 'Continental',
-                diet: 'both',
-                price: 245,
-                image: '/sandwich-wrap-combo.png',
-                bestFor: 'Best for brainstorming huddles',
-                features: [
-                    'Signature sandwich or wrap selection',
-                    'Herbed potato wedges',
-                    'Cold pressed juice or iced tea',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'SANDWICH COMBO',
-                    basePrice: 245,
-                    proteins: [
-                        { id: 'corp-sandwich-paneer', label: 'Paneer Tikka Sandwich', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'corp-sandwich-veggie', label: 'Mediterranean Veg Wrap', priceDelta: 0, includedLabel: 'Included' },
-                        { id: 'corp-sandwich-chicken', label: 'Smoked Chicken Club', priceDelta: 30, includedLabel: '+ ₹30' },
-                    ],
-                    bases: [
-                        { id: 'corp-sandwich-bread', label: 'Artisan Bread', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'corp-sandwich-tortilla', label: 'Whole Wheat Tortilla', priceDelta: 15, includedLabel: '+ ₹15' },
-                    ],
-                    addOns: [
-                        { id: 'corp-sandwich-salad', label: 'Side Salad Cup', priceDelta: 22, description: 'Fresh greens + dressing' },
-                        { id: 'corp-sandwich-dessert', label: 'Mini Dessert Pot', priceDelta: 25, description: 'Tiramisu or mousse' },
-                    ],
-                },
-            },
-            {
-                id: 'corporate-mini-snacks',
-                name: 'Mini Snack Boxes',
-                birthday: {
-                    displayName: 'Birthday Party',
-                    description: 'Dedicated birthday menus for kids and adults, from budget-friendly to luxury.',
-                    defaultGuests: 40,
-                    defaultBudget: 350,
-                    tags: ['Birthday', 'Kids', 'Live counters'],
-                    packages: [
-                        {
-                            id: 'birthday-basic-kids',
-                            name: 'Kids Birthday Basic Meal (Budget Friendly)',
-                            description: 'Budget-friendly kids spread with fun staples and a sweet finish.',
-                            cuisine: 'Kids Friendly',
-                            diet: 'veg',
-                            price: 199,
-                            image: '/meal-box-kids.png',
-                            bestFor: 'Small kids party (20-50 guests)',
-                            partyType: 'kids',
-                            venue: 'indoor',
-                            liveCounter: false,
-                            features: ['Mini burger or sandwich', 'French fries + Pasta / noodles + Pizza slice', 'Juice box, Cupcake, Chocolate pastry', 'Option: Add return gift food box'],
-                            ctaLabel: 'Customize',
-                            ctaVariant: 'outline',
-                            isAvailable: true,
-                        },
-                        {
-                            id: 'birthday-standard',
-                            name: 'Standard Birthday Party Meal (Most Popular)',
-                            description: 'Balanced birthday meal with starters, mains, sweets, and optional cake add-on.',
-                            cuisine: 'Traditional',
-                            diet: 'both',
-                            price: 425,
-                            image: '/buffet-thali.png',
-                            bestFor: 'Family birthday / house party',
-                            partyType: 'adult',
-                            venue: 'indoor',
-                            liveCounter: false,
-                            features: ['Welcome drink; 2 starters (paneer tikka / spring roll)', '2 sabzi + Paneer item + Dal fry', 'Jeera rice + Roti/naan + Salad', 'Sweet (gulab jamun/ice cream), Papad', 'Birthday cake (optional add-on)'],
-                            ctaLabel: 'Customize',
-                            ctaVariant: 'primary',
-                            highlighted: true,
-                            isAvailable: true,
-                        },
-                        {
-                            id: 'birthday-premium',
-                            name: 'Premium Birthday Celebration Meal',
-                            description: 'Restaurant-style birthday spread with mocktails, live pasta option, and richer mains.',
-                            cuisine: 'Grand Buffet',
-                            diet: 'both',
-                            price: 750,
-                            image: '/wedding-buffet.png',
-                            bestFor: 'Adult birthday / restaurant style party',
-                            partyType: 'adult',
-                            venue: 'either',
-                            liveCounter: true,
-                            features: ['Mocktail welcome drink; 3 starters', 'Paneer special + 3 sabzi + Dal makhani', 'Veg pulao/biryani; Butter naan + roti', 'Dessert (2 types) + Ice cream', 'Live pasta counter (optional)'],
-                            ctaLabel: 'Customize & Add',
-                            ctaVariant: 'primary',
-                            isAvailable: true,
-                        },
-                        {
-                            id: 'birthday-luxury',
-                            name: 'Luxury Birthday / Grand Celebration',
-                            description: 'Banquet-scale celebration with multiple live counters and premium dessert spread.',
-                            cuisine: 'Grand Buffet',
-                            diet: 'both',
-                            price: 1350,
-                            image: '/luxury-nonveg-buffet.png',
-                            bestFor: '100+ guests / banquet party',
-                            partyType: 'adult',
-                            venue: 'either',
-                            liveCounter: true,
-                            features: ['Welcome mocktails; 4 starters; Live chaat counter', '4 sabzi + 2 paneer items + Dal makhani', 'Biryani; Chinese counter; Pasta live counter', 'Dessert counter (4 sweets), Ice cream & brownie', 'Paan counter'],
-                            ctaLabel: 'Customize & Add',
-                            ctaVariant: 'primary',
-                            isAvailable: true,
-                        },
-                        {
-                            id: 'birthday-snack-box-new',
-                            name: 'Birthday Snack Box (Takeaway)',
-                            description: 'Return-gift friendly snack box for guests or office birthdays.',
-                            cuisine: 'Gifting',
-                            diet: 'veg',
-                            price: 199,
-                            image: '/snack-box-coffee.png',
-                            bestFor: 'Return gifts / office birthday',
-                            partyType: 'either',
-                            venue: 'either',
-                            liveCounter: false,
-                            features: ['Sandwich, Chips, Juice, Chocolate', 'Cupcake + Mini sweet', 'Price bands: ₹99 — ₹299 per box'],
-                            ctaLabel: 'Customize',
-                            ctaVariant: 'outline',
-                            isAvailable: true,
-                        },
-                    ],
-                },
-                description: 'Fun-sized mains with juice, fries, and a party treat tailored for kids.',
-                cuisine: 'Kids Friendly',
-                diet: 'veg',
-                price: 210,
-                image: '/meal-box-kids.png',
-                bestFor: 'Best for kids tables',
-                features: [
-                    'Cheesy pasta cup or mini roll',
-                    'Seasoned smiley fries',
-                    'Fresh fruit juice tetra pack',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'KIDS',
-                    basePrice: 210,
-                    proteins: [
-                        { id: 'kids-paneer', label: 'Paneer Nuggets', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'kids-nuggets', label: 'Veg Nuggets', priceDelta: 15, includedLabel: '+ ₹15' },
-                        { id: 'kids-chicken', label: 'Chicken Nuggets', priceDelta: 25, includedLabel: '+ ₹25' },
-                    ],
-                    bases: [
-                        { id: 'kids-pasta', label: 'Cheesy Pasta', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'kids-roll', label: 'Mini Paneer Roll', priceDelta: 12, includedLabel: '+ ₹12' },
-                    ],
-                    addOns: [
-                        { id: 'kids-toy', label: 'Surprise Toy', priceDelta: 20, description: 'Age 5-12' },
-                        { id: 'kids-dessert', label: 'Chocolate Mousse Cup', priceDelta: 18, description: 'Cup dessert' },
-                    ],
-                },
-            },
-            {
-                id: 'birthday-cake-combo',
-                name: 'Cake + Snacks Combo',
-                description: 'Celebration cake paired with savoury and sweet finger food.',
-                cuisine: 'Celebration',
-                diet: 'veg',
-                price: 320,
-                image: '/cake-snack-combo.png',
-                bestFor: 'Best for cutting ceremony',
-                features: [
-                    '1.5 kg Fresh Cream Cake',
-                    'Savoury Snack Platter',
-                    'Assorted Sweets',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'CELEBRATION',
-                    basePrice: 320,
-                    proteins: [
-                        { id: 'cake-vanilla', label: 'Vanilla Cream', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'cake-choco', label: 'Chocolate Truffle', priceDelta: 35, includedLabel: '+ ₹35' },
-                    ],
-                    bases: [
-                        { id: 'cake-snack', label: 'Snack Platter', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'cake-sandwich', label: 'Tea Sandwiches', priceDelta: 20, includedLabel: '+ ₹20' },
-                    ],
-                    addOns: [
-                        { id: 'cake-candles', label: 'Theme Candles', priceDelta: 10, description: 'Set of 6' },
-                        { id: 'cake-photo', label: 'Photo Print Topper', priceDelta: 25, description: 'Edible sheet' },
-                    ],
-                },
-            },
-            {
-                id: 'birthday-pizza-burger',
-                name: 'Pizza + Burger Combo',
-                description: 'Party favourite combo box featuring pizza slices, sliders, and fries.',
-                cuisine: 'Fast Food',
-                diet: 'both',
-                price: 285,
-                image: '/fast-food-box.png',
-                bestFor: 'Best for teen parties',
-                features: [
-                    'Cheese or tandoori pizza slice',
-                    'Mini sliders (veg or chicken)',
-                    'Seasoned fries & dip',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'PARTY COMBO',
-                    basePrice: 285,
-                    proteins: [
-                        { id: 'combo-veg', label: 'Veg Patty Slider', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'combo-paneer', label: 'Paneer Tikka Slider', priceDelta: 15, includedLabel: '+ ₹15' },
-                        { id: 'combo-chicken', label: 'Peri Peri Chicken Slider', priceDelta: 30, includedLabel: '+ ₹30' },
-                    ],
-                    bases: [
-                        { id: 'combo-pizza-cheese', label: 'Cheese Pizza Base', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'combo-pizza-bbq', label: 'BBQ Pizza Base', priceDelta: 18, includedLabel: '+ ₹18' },
-                    ],
-                    addOns: [
-                        { id: 'combo-extra-dip', label: 'Extra Dip Duo', priceDelta: 12, description: 'Cheese + salsa' },
-                        { id: 'combo-soda', label: 'Cold Drink Can', priceDelta: 22, description: '330 ml' },
-                    ],
-                },
-            },
-            {
-                id: 'birthday-starter-platter',
-                name: 'Party Starter Platter',
-                description: 'Large sharing platter stacked with paneer tikka, kebabs, and crispy bites.',
-                cuisine: 'Starters',
-                diet: 'both',
-                price: 310,
-                image: '/party-starter-platter.png',
-                bestFor: 'Best for welcome hour',
-                features: [
-                    'Paneer tikka & corn seekh kebab',
-                    'Crispy potato cigars with dips',
-                    'Mini chicken tikka or soya chaap',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'STARTER PLATTER',
-                    basePrice: 310,
-                    proteins: [
-                        { id: 'starter-paneer', label: 'Paneer Tikka', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'starter-soya', label: 'Soya Chaap', priceDelta: 15, includedLabel: '+ ₹15' },
-                        { id: 'starter-chicken', label: 'Murgh Malai', priceDelta: 35, includedLabel: '+ ₹35' },
-                    ],
-                    bases: [
-                        { id: 'starter-classic', label: 'Classic Platter', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'starter-premium', label: 'Live Grill Setup', priceDelta: 55, includedLabel: '+ ₹55' },
-                    ],
-                    addOns: [
-                        { id: 'starter-dips', label: 'Dip Trio Upgrade', priceDelta: 18, description: 'Cheese, mint, peri peri' },
-                        { id: 'starter-live', label: 'Chef Station', priceDelta: 95, description: 'On-site grilling' },
-                    ],
-                },
-            },
-            {
-                id: 'birthday-dessert-box',
-                name: 'Dessert Treat Box',
-                description: 'Mini dessert assortment with mousse shots, cupcakes, and celebration sweets.',
-                cuisine: 'Desserts',
-                diet: 'veg',
-                price: 240,
-                image: '/dessert-platter.png',
-                bestFor: 'Best for sweet finale',
-                features: [
-                    'Chocolate mousse shot',
-                    'Fruit tart bite',
-                    'Celebration mithai square',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'DESSERT BOX',
-                    basePrice: 240,
-                    proteins: [
-                        { id: 'dessert-choco', label: 'Chocolate Lovers Mix', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dessert-fruit', label: 'Fruit Forward Mix', priceDelta: 20, includedLabel: '+ ₹20' },
-                    ],
-                    bases: [
-                        { id: 'dessert-box-classic', label: 'Classic Gift Box', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dessert-box-theme', label: 'Theme Printed Box', priceDelta: 25, includedLabel: '+ ₹25' },
-                    ],
-                    addOns: [
-                        { id: 'dessert-candles', label: 'Sparkler Candles', priceDelta: 12, description: 'Pack of four' },
-                        { id: 'dessert-note', label: 'Personalised Thank-you Note', priceDelta: 10, description: 'Custom message card' },
-                    ],
-                },
-            },
-        ],
-    },
-    wedding: {
-        displayName: 'Wedding Celebration',
-        description: 'Regal spreads and specialty counters curated for wedding festivities.',
-        defaultGuests: 200,
-        defaultBudget: 550,
-        tags: ['Premium', 'Large gathering', '100+ guests'],
-        packages: [
-            {
-                id: 'wedding-basic-economy',
-                name: 'Basic Wedding Meal (Economy)',
-                description: 'Value-focused thali with core wedding staples for intimate gatherings.',
-                cuisine: 'Traditional',
-                diet: 'veg',
-                price: 325,
-                image: '/traditional-thali.png',
-                features: ['2 Sabzi + 1 Dal', 'Rice & 4 Roti', 'Sweet (1), Salad, Pickle'],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-            },
-            {
-                id: 'wedding-standard-popular',
-                name: 'Standard Wedding Meal (Most Popular)',
-                description: 'Balanced wedding spread with welcome drink, paneer and dessert pairings.',
-                cuisine: 'Traditional',
-                diet: 'veg',
-                price: 575,
-                image: '/buffet-thali.png',
-                features: ['Welcome drink', '3 Sabzi + Paneer item + Dal Fry', 'Jeera rice, Butter roti/naan', 'Sweet (2) & Ice cream, Salad, Papad'],
-                ctaLabel: 'Customize',
-                ctaVariant: 'primary',
-                highlighted: true,
-                isAvailable: true,
-            },
-            {
-                id: 'wedding-premium-meal',
-                name: 'Premium Wedding Meal',
-                description: 'Elevated multi-course with starters, dual paneer mains, and live counter option.',
-                cuisine: 'Grand Buffet',
-                diet: 'veg',
-                price: 1000,
-                image: '/wedding-buffet.png',
-                features: [
-                    'Welcome drink (2 options) + Starter (2)',
-                    '4 Sabzi + 2 Paneer + Dal Makhani',
-                    'Veg pulao, Butter naan & roti',
-                    'Sweet (3), Ice cream, Salad bar, Live counter optional',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                isAvailable: true,
-            },
-            {
-                id: 'wedding-royal-luxury-buffet',
-                name: 'Royal Wedding / Luxury Buffet',
-                description: 'Opulent live experience with multiple counters, mocktails, and dessert theatre.',
-                cuisine: 'Grand Buffet',
-                diet: 'both',
-                price: 2200,
-                image: '/luxury-nonveg-buffet.png',
-                features: [
-                    'Mocktails counter, Starter (4 types), Live chaat counter',
-                    '5 Sabzi + 3 Paneer, Dal, Biryani, Chinese & South Indian counters',
-                    'Dessert counter (5+), Ice cream & brownie, Live jalebi, Paan counter',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                isAvailable: true,
-            },
-            {
-                id: 'wedding-box-packed-meal',
-                name: 'Wedding Box (Packed Meal)',
-                description: 'Takeaway / return gift meal boxes in mini, standard, premium, and deluxe tiers.',
-                cuisine: 'Gifting',
-                diet: 'veg',
-                price: 299,
-                image: '/return-gift-box.png',
-                features: ['Mini ₹199 · Standard ₹299 · Premium ₹499 · Deluxe ₹799', 'Includes sweet, sabzi, roti, rice, dessert', 'Comes with spoon & tissue'],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-            },
-            {
-                id: 'wedding-premium-buffet',
-                name: 'Premium Wedding Buffet',
-                description: 'Lavish multi-course buffet with live chef actions and premium desserts.',
-                cuisine: 'Grand Buffet',
-                diet: 'both',
-                price: 650,
-                image: '/wedding-buffet.png',
-                badge: { label: 'SIGNATURE', icon: 'diamond', classes: 'bg-rose-100 text-rose-600' },
-                bestFor: 'Best for 150-400 guests',
-                features: [
-                    '6 Live Counters',
-                    '8 Main Course Selections',
-                    'Dessert & Paan Lounge',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                highlighted: true,
-                isAvailable: true,
-                customization: {
-                    category: 'ROYAL',
-                    basePrice: 650,
-                    proteins: [
-                        { id: 'wedding-paneer', label: 'Dal Bukhara + Paneer', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'wedding-chicken', label: 'Butter Chicken', priceDelta: 60, includedLabel: '+ ₹60' },
-                        { id: 'wedding-mutton', label: 'Rogan Josh', priceDelta: 95, includedLabel: '+ ₹95' },
-                    ],
-                    bases: [
-                        { id: 'wedding-breads', label: 'Live Bread Basket', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'wedding-rice', label: 'Zafrani Pulao', priceDelta: 35, includedLabel: '+ ₹35' },
-                    ],
-                    addOns: [
-                        { id: 'wedding-cocktail', label: 'Mocktail Bar', priceDelta: 120, description: 'Mixologist led' },
-                        { id: 'wedding-dessert', label: 'Nitro Ice Cream Station', priceDelta: 140, description: 'Live dessert' },
-                    ],
-                },
-            },
-            {
-                id: 'wedding-luxury-nonveg-buffet',
-                name: 'Luxury Non-Veg Buffet',
-                description: 'Opulent buffet headlined by chef-curated non-vegetarian mains and regal accompaniments.',
-                cuisine: 'Grand Buffet',
-                diet: 'non-veg',
-                price: 690,
-                image: '/luxury-nonveg-buffet.png',
-                bestFor: 'Best for sangeet or reception night',
-                features: [
-                    'Butter chicken handi & mutton rogan josh',
-                    'Seafood biryani with live carving station',
-                    'Signature grills with gourmet breads',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                isAvailable: true,
-                customization: {
-                    category: 'ROYAL NON-VEG BUFFET',
-                    basePrice: 690,
-                    proteins: [
-                        { id: 'luxury-chicken', label: 'Butter Chicken Handi', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'luxury-mutton', label: 'Rogan Josh', priceDelta: 60, includedLabel: '+ ₹60' },
-                        { id: 'luxury-seafood', label: 'Konkani Seafood Curry', priceDelta: 85, includedLabel: '+ ₹85' },
-                    ],
-                    bases: [
-                        { id: 'luxury-breads', label: 'Roomali & Garlic Naan', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'luxury-rice', label: 'Seafood Pulao', priceDelta: 32, includedLabel: '+ ₹32' },
-                    ],
-                    addOns: [
-                        { id: 'luxury-kebab', label: 'Live Seekh Kebab Station', priceDelta: 110, description: 'Chef-led grilling' },
-                        { id: 'luxury-dessert', label: 'Dessert Flaming Counter', priceDelta: 140, description: 'FlambÃ© showcase' },
-                    ],
-                },
-            },
-            {
-                id: 'wedding-royal-veg-thali',
-                name: 'Royal Veg Thali',
-                description: 'Seated royal thali service with chef-led plating and premium accompaniments.',
-                cuisine: 'Traditional',
-                diet: 'veg',
-                price: 460,
-                image: '/traditional-thali.png',
-                bestFor: 'Best for family lunch events',
-                features: [
-                    'Silver thali setup with regional starters',
-                    'Six course royal mains & breads',
-                    'Rasmalai, paan shots & mukhwas',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'ROYAL THALI',
-                    basePrice: 460,
-                    proteins: [
-                        { id: 'royal-paneer', label: 'Paneer Khurchan', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'royal-sabzi', label: 'Seasonal Subz Handi', priceDelta: 0, includedLabel: 'Included' },
-                        { id: 'royal-kofte', label: 'Shahi Malai Kofte', priceDelta: 35, includedLabel: '+ ₹35' },
-                    ],
-                    bases: [
-                        { id: 'royal-breads', label: 'Phulka & Sheermal', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'royal-rice', label: 'Zafrani Pulao', priceDelta: 28, includedLabel: '+ ₹28' },
-                    ],
-                    addOns: [
-                        { id: 'royal-live-dessert', label: 'Live Jalebi Counter', priceDelta: 65, description: 'With rabdi topping' },
-                        { id: 'royal-decor', label: 'Thali Styling & Florals', priceDelta: 40, description: 'Table florals & runners' },
-                    ],
-                },
-            },
-            {
-                id: 'wedding-sweet-dessert',
-                name: 'Sweet & Dessert Boxes',
-                description: 'Dessert curation with mithai, petit fours, and celebration jars for gifting or dessert tables.',
-                cuisine: 'Desserts',
-                diet: 'veg',
-                price: 285,
-                image: '/sweet-box.png',
-                bestFor: 'Best for dessert counters',
-                features: [
-                    'Assorted artisan mithai',
-                    'Dessert jars & petit fours',
-                    'Custom toppers & ribbons',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'DESSERT GIFTS',
-                    basePrice: 285,
-                    proteins: [
-                        { id: 'dessert-mithai', label: 'Traditional Mithai Mix', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dessert-fusion', label: 'Fusion Dessert Mix', priceDelta: 25, includedLabel: '+ ₹25' },
-                        { id: 'dessert-gourmet', label: 'Patisserie Petit Fours', priceDelta: 35, includedLabel: '+ ₹35' },
-                    ],
-                    bases: [
-                        { id: 'dessert-box-gold', label: 'Gold Foil Box', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dessert-box-luxe', label: 'Luxe Keepsake Box', priceDelta: 38, includedLabel: '+ ₹38' },
-                    ],
-                    addOns: [
-                        { id: 'dessert-tag', label: 'Custom Tag & Ribbon', priceDelta: 12, description: 'Names or monogram' },
-                        { id: 'dessert-delivery', label: 'Room Drop Logistics', priceDelta: 28, description: 'Hotel coordination' },
-                    ],
-                },
-            },
-            {
-                id: 'wedding-return-gift-box',
-                name: 'Return Gift Sweet Boxes',
-                description: 'Handcrafted sweet gift sets with bespoke packaging for guest takeaways.',
-                cuisine: 'Gifting',
-                diet: 'veg',
-                price: 225,
-                image: '/return-gift-box.png',
-                bestFor: 'Best for bidaai favours',
-                features: [
-                    'Premium dry fruit mithai selection',
-                    'Customisable thank-you cards',
-                    'Handwrapped designer boxes',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'RETURN GIFTS',
-                    basePrice: 225,
-                    proteins: [
-                        { id: 'return-mithai', label: 'Traditional Mithai Duo', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'return-dryfruit', label: 'Dry Fruit Bonbons', priceDelta: 18, includedLabel: '+ ₹18' },
-                        { id: 'return-gourmet', label: 'Gourmet Praline Mix', priceDelta: 28, includedLabel: '+ ₹28' },
-                    ],
-                    bases: [
-                        { id: 'return-box-classic', label: 'Classic Box', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'return-box-keepsake', label: 'Keepsake Trunk Box', priceDelta: 32, includedLabel: '+ ₹32' },
-                    ],
-                    addOns: [
-                        { id: 'return-tag', label: 'Personalised Tag & Ribbon', priceDelta: 10, description: 'Names & date' },
-                        { id: 'return-delivery', label: 'Hotel Room Drop', priceDelta: 26, description: 'Coordinated logistics' },
-                    ],
-                },
-            },
-            {
-                id: 'wedding-welcome-drinks',
-                name: 'Welcome Drink Counter',
-                description: 'Immersive welcome beverage bar with signature mocktails, infusions, and garnish theatre.',
-                cuisine: 'Beverages',
-                diet: 'veg',
-                price: 230,
-                image: '/welcome-drinks.png',
-                bestFor: 'Best for baraat reception',
-                features: [
-                    'Fresh mocktail & cold-pressed juice menu',
-                    'Infused detox water dispensers',
-                    'Live garnish and dry-ice show',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'BEVERAGE COUNTER',
-                    basePrice: 230,
-                    proteins: [
-                        { id: 'drink-mocktail', label: 'Mocktail Trio', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'drink-juice', label: 'Cold Pressed Juice', priceDelta: 20, includedLabel: '+ ₹20' },
-                    ],
-                    bases: [
-                        { id: 'drink-glass', label: 'Glassware Service', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'drink-copper', label: 'Copper & Brassware Setup', priceDelta: 28, includedLabel: '+ ₹28' },
-                    ],
-                    addOns: [
-                        { id: 'drink-flaring', label: 'Flair Bartender', priceDelta: 75, description: 'Show element' },
-                        { id: 'drink-canape', label: 'Canape Pairing', priceDelta: 55, description: 'Two bite snacks' },
-                    ],
-                },
-            },
-            {
-                id: 'wedding-live-counter',
-                name: 'Live Counter Packages',
-                description: 'Interactive stations like chaat, pasta, grills, or oriental wok.',
-                cuisine: 'Live Counter',
-                diet: 'both',
-                price: 360,
-                image: '/live-counter.png',
-                features: [
-                    'Choose any two stations',
-                    'Chef & Service Staff',
-                    'Complimentary Condiments',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'LIVE STATION',
-                    basePrice: 360,
-                    proteins: [
-                        { id: 'live-chaat', label: 'Delhi Chaat', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'live-pasta', label: 'Italian Pasta', priceDelta: 35, includedLabel: '+ ₹35' },
-                        { id: 'live-grill', label: 'Kebab Grill', priceDelta: 45, includedLabel: '+ ₹45' },
-                    ],
-                    bases: [
-                        { id: 'live-service', label: 'Standard Service', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'live-premium', label: 'Premium Service Ware', priceDelta: 28, includedLabel: '+ ₹28' },
-                    ],
-                    addOns: [
-                        { id: 'live-decor', label: 'Counter Styling', priceDelta: 32, description: 'Theme decor' },
-                        { id: 'live-musician', label: 'Live Folk Artist', priceDelta: 140, description: '30 min set' },
-                    ],
-                },
-            },
-        ],
-    },
-    houseParty: {
-        displayName: 'House Party',
-        description: 'Shareable platters and combos engineered for intimate gatherings.',
-        defaultGuests: 35,
-        defaultBudget: 320,
-        packages: [
-            {
-                id: 'house-starter-platters',
-                name: 'Starter Platters',
-                description: 'Assorted small bites with dips and garnish kits.',
-                cuisine: 'Tapas',
-                diet: 'veg',
-                price: 285,
-                image: '/tapas-platters.png',
-                features: [
-                    'Cheese & Crudite Platter',
-                    'Mediterranean Dips Trio',
-                    'Mini Puff Pastries',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'TAPAS',
-                    basePrice: 285,
-                    proteins: [
-                        { id: 'tapas-cheese', label: 'Cheese Selection', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'tapas-paneer', label: 'Paneer Tikka Bites', priceDelta: 25, includedLabel: '+ ₹25' },
-                    ],
-                    bases: [
-                        { id: 'tapas-crackers', label: 'Gourmet Crackers', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'tapas-bread', label: 'Mini Focaccia', priceDelta: 18, includedLabel: '+ ₹18' },
-                    ],
-                    addOns: [
-                        { id: 'tapas-fruit', label: 'Fruit Skewers', priceDelta: 28, description: 'Seasonal fruits' },
-                        { id: 'tapas-dip', label: 'Extra Dip Trio', priceDelta: 22, description: 'Spinach, beet, hummus' },
-                    ],
-                },
-            },
-            {
-                id: 'house-bbq-combo',
-                name: 'BBQ Combo',
-                description: 'Smoked meats and grilled veggies with sauces and sides.',
-                cuisine: 'BBQ',
-                diet: 'non-veg',
-                price: 380,
-                image: '/grilled-chicken.png',
-                badge: { label: 'GRILL FAVORITE', icon: 'outdoor_grill', classes: 'bg-red-100 text-red-600' },
-                features: [
-                    'Chicken Drumettes',
-                    'Garlic Herb Prawns',
-                    'Fire-roasted Veg Skewers',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                highlighted: true,
-                isAvailable: true,
-                customization: {
-                    category: 'BBQ',
-                    basePrice: 380,
-                    proteins: [
-                        { id: 'bbq-chicken', label: 'Smoked Chicken', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'bbq-paneer', label: 'Paneer Skewers', priceDelta: 0, includedLabel: 'Included' },
-                        { id: 'bbq-lamb', label: 'Chipotle Lamb Chops', priceDelta: 65, includedLabel: '+ ₹65' },
-                    ],
-                    bases: [
-                        { id: 'bbq-bread', label: 'Garlic Butter Bread', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'bbq-rice', label: 'Herbed Rice Pilaf', priceDelta: 25, includedLabel: '+ ₹25' },
-                    ],
-                    addOns: [
-                        { id: 'bbq-salad', label: 'Charred Corn Salad', priceDelta: 30, description: 'Feta & lime' },
-                        { id: 'bbq-sauce', label: 'Signature Sauce Kit', priceDelta: 35, description: 'Three jars' },
-                    ],
-                },
-            },
-            {
-                id: 'house-dinner-tray',
-                name: 'Dinner Combo Trays',
-                description: 'Family-style trays with mains, carbs, and accompaniments.',
-                cuisine: 'Comfort',
-                diet: 'both',
-                price: 340,
-                image: '/family-dinner.png',
-                features: [
-                    'Two Chef Specials',
-                    'Bread & Rice Pairing',
-                    'Seasonal Salad Bowl',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'COMFORT',
-                    basePrice: 340,
-                    proteins: [
-                        { id: 'dinner-paneer', label: 'Paneer Butter Masala', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dinner-chicken', label: 'Chicken Tikka Masala', priceDelta: 40, includedLabel: '+ ₹40' },
-                    ],
-                    bases: [
-                        { id: 'dinner-naan', label: 'Tandoori Roti', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dinner-rice', label: 'Jeera Rice', priceDelta: 18, includedLabel: '+ ₹18' },
-                    ],
-                    addOns: [
-                        { id: 'dinner-dessert', label: 'Phirni Cups', priceDelta: 24, description: 'Individual serving' },
-                        { id: 'dinner-drink', label: 'Lemonade Jar', priceDelta: 20, description: 'Serve chilled' },
-                    ],
-                },
-            },
-            {
-                id: 'house-dessert-box',
-                name: 'Dessert Boxes',
-                description: 'Sweet endings with mini pastries, brownies, and mousse shots.',
-                cuisine: 'Desserts',
-                diet: 'veg',
-                price: 260,
-                image: '/dessert-platter.png',
-                features: [
-                    'Mini Churros + Chocolate',
-                    'Salted Caramel Tartlets',
-                    'Seasonal Fruit Shots',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'DESSERTS',
-                    basePrice: 260,
-                    proteins: [
-                        { id: 'dessert-churro', label: 'Choco Churros', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dessert-fudge', label: 'Salted Caramel Fudge', priceDelta: 20, includedLabel: '+ ₹20' },
-                    ],
-                    bases: [
-                        { id: 'dessert-shot', label: 'Fruit Shot Base', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'dessert-cake', label: 'Cheesecake Bite', priceDelta: 30, includedLabel: '+ ₹30' },
-                    ],
-                    addOns: [
-                        { id: 'dessert-icecream', label: 'Ice Cream Cups', priceDelta: 35, description: '100 ml each' },
-                        { id: 'dessert-candy', label: 'Candy Jar', priceDelta: 20, description: 'Colorful mix' },
-                    ],
-                },
-            },
-        ],
-    },
-    pooja: {
-        displayName: 'Pooja Ceremony',
-        description: 'Pure satvik menus prepared without onion or garlic, ideal for rituals.',
-        defaultGuests: 60,
-        defaultBudget: 280,
-        packages: [
-            {
-                id: 'pooja-satvik-thali',
-                name: 'Satvik Thali',
-                description: 'Temple style thali with balanced satvik courses.',
-                cuisine: 'Satvik',
-                diet: 'satvik',
-                price: 260,
-                image: '/pooja-thali.png',
-                badge: { label: 'MOST LOVED', icon: 'favorite', classes: 'bg-emerald-100 text-emerald-600' },
-                features: [
-                    'Aloo Sabzi + Kala Chana',
-                    'Jeera Rice + Poori',
-                    'Kheer Dessert',
-                ],
-                ctaLabel: 'Customize & Add',
-                ctaVariant: 'primary',
-                highlighted: true,
-                isAvailable: true,
-                customization: {
-                    category: 'SATVIK',
-                    basePrice: 260,
-                    proteins: [
-                        { id: 'satvik-paneer', label: 'Paneer Sabzi', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'satvik-dal', label: 'Moong Dal Tadka', priceDelta: 0, includedLabel: 'Included' },
-                        { id: 'satvik-soy', label: 'Soy Chunk Curry', priceDelta: 25, includedLabel: '+ ₹25' },
-                    ],
-                    bases: [
-                        { id: 'satvik-rice', label: 'Ghee Jeera Rice', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'satvik-millet', label: 'Foxtail Millet', priceDelta: 15, includedLabel: '+ ₹15' },
-                    ],
-                    addOns: [
-                        { id: 'satvik-ladoo', label: 'Besan Ladoo', priceDelta: 20, description: 'Two pieces' },
-                        { id: 'satvik-fruit', label: 'Seasonal Fruit Cup', priceDelta: 15, description: 'Cut fruits' },
-                    ],
-                },
-            },
-            {
-                id: 'pooja-prasad-box',
-                name: 'Prasad Box',
-                description: 'Classic prasad selection packed individually.',
-                cuisine: 'Prasad',
-                diet: 'satvik',
-                price: 180,
-                image: '/vegan-falafel.png',
-                features: [
-                    'Kesari Bath',
-                    'Dry Fruit Mix',
-                    'Banana Halwa',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'PRASAD',
-                    basePrice: 180,
-                    proteins: [
-                        { id: 'prasad-sweet', label: 'Kesari Bath', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'prasad-ladoo', label: 'Boondi Ladoo', priceDelta: 15, includedLabel: '+ ₹15' },
-                    ],
-                    bases: [
-                        { id: 'prasad-box', label: 'Palm Leaf Box', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'prasad-potli', label: 'Fabric Potli', priceDelta: 20, includedLabel: '+ ₹20' },
-                    ],
-                    addOns: [
-                        { id: 'prasad-incense', label: 'Sandal Incense Pack', priceDelta: 18, description: '10 sticks' },
-                        { id: 'prasad-camphor', label: 'Pure Camphor', priceDelta: 12, description: '5 tablets' },
-                    ],
-                },
-            },
-            {
-                id: 'pooja-sweet-fruit',
-                name: 'Sweet & Fruit Box',
-                description: 'Balanced prasad hamper with sweets and seasonal fruits.',
-                cuisine: 'Gifting',
-                diet: 'satvik',
-                price: 215,
-                image: '/fruit-sweet-box.png',
-                features: [
-                    'Seasonal Fruit Cups',
-                    'Dry Fruit Laddu',
-                    'Tulsi Water Bottle',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'FRUIT & SWEET',
-                    basePrice: 215,
-                    proteins: [
-                        { id: 'sweet-fruit', label: 'Fruit Medley', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'sweet-dryfruit', label: 'Dry Fruit Mix', priceDelta: 18, includedLabel: '+ ₹18' },
-                    ],
-                    bases: [
-                        { id: 'sweet-box', label: 'Eco Kraft Box', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'sweet-basket', label: 'Bamboo Basket', priceDelta: 22, includedLabel: '+ ₹22' },
-                    ],
-                    addOns: [
-                        { id: 'sweet-flower', label: 'Marigold Garland', priceDelta: 16, description: 'Single string' },
-                        { id: 'sweet-card', label: 'Temple Card', priceDelta: 10, description: 'Blessing note' },
-                    ],
-                },
-            },
-            {
-                id: 'pooja-mini-meal',
-                name: 'Mini Pooja Meal Pack',
-                description: 'Compact satvik meal for quick distribution after the ritual.',
-                cuisine: 'Mini Meal',
-                diet: 'satvik',
-                price: 205,
-                image: '/mini-meal-pack.png',
-                features: [
-                    'Lemon Rice',
-                    'Vegetable Poriyal',
-                    'Kesari Dessert',
-                ],
-                ctaLabel: 'Customize',
-                ctaVariant: 'outline',
-                isAvailable: true,
-                customization: {
-                    category: 'MINI MEAL',
-                    basePrice: 205,
-                    proteins: [
-                        { id: 'mini-kootu', label: 'Mixed Veg Kootu', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'mini-paneer', label: 'Paneer Pepper Fry', priceDelta: 18, includedLabel: '+ ₹18' },
-                    ],
-                    bases: [
-                        { id: 'mini-rice', label: 'Lemon Rice', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'mini-millet', label: 'Little Millet Pongal', priceDelta: 15, includedLabel: '+ ₹15' },
-                    ],
-                    addOns: [
-                        { id: 'mini-prasad', label: 'Sacred Tulsi Leaves', priceDelta: 8, description: 'Blessed garnish' },
-                        { id: 'mini-water', label: 'Herbal Jeera Water', priceDelta: 12, description: '200 ml' },
-                    ],
-                },
-            },
-        ],
-    },
-    other: {
-        displayName: 'Custom Event',
-        description: 'Need something unique? Build an entirely bespoke menu with our planners.',
-        defaultGuests: 40,
-        defaultBudget: 300,
-        packages: [
-            {
-                id: 'other-build-your-own',
-                name: 'Build Your Own Menu',
-                description: 'Interactive planning experience to craft a menu from scratch.',
-                cuisine: 'Custom',
-                diet: 'both',
-                price: 0,
-                image: '/custom-menu-builder.png',
-                badge: { label: 'FULLY FLEXIBLE', icon: 'auto_fix_high', classes: 'bg-slate-100 text-slate-600' },
-                features: [
-                    'Dedicated Menu Strategist',
-                    'Ingredient Sourcing Options',
-                    'Curated Tastings',
-                ],
-                ctaLabel: 'Start Building',
-                ctaVariant: 'primary',
-                highlighted: true,
-                isAvailable: true,
-                customization: {
-                    category: 'CUSTOM BUILDER',
-                    basePrice: 0,
-                    proteins: [
-                        { id: 'custom-veg', label: 'Vegetarian Focus', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'custom-nonveg', label: 'Mixed Menu', priceDelta: 0, includedLabel: 'Included' },
-                    ],
-                    bases: [
-                        { id: 'custom-consult', label: 'Culinary Workshop', priceDelta: 0, includedLabel: 'Included', isDefault: true },
-                        { id: 'custom-tasting', label: 'Chef Tasting', priceDelta: 150, includedLabel: '+ ₹150' },
-                    ],
-                    addOns: [
-                        { id: 'custom-event-manager', label: 'Event Manager', priceDelta: 0, description: 'Complimentary consult' },
-                        { id: 'custom-live-demo', label: 'Kitchen Walkthrough', priceDelta: 0, description: 'Virtual/live demo' },
-                    ],
-                },
-            },
-        ],
-    },
-};
+const mealPackagesByOccasion = {};
 
 const OccasionMenuPage = () => {
     const navigate = useNavigate();
@@ -1056,7 +48,7 @@ const OccasionMenuPage = () => {
     const [selectedCuisine, setSelectedCuisine] = useState('All');
     const [dietFilter, setDietFilter] = useState('all');
     const [guestCount, setGuestCount] = useState(50);
-    const [budget, setBudget] = useState(450);
+    const [budget, setBudget] = useState(1500); // high default — useEffect will set to actual max once data loads
     const [selectedPackageId, setSelectedPackageId] = useState('');
     const [selectedProteinId, setSelectedProteinId] = useState('');
     const [selectedBaseId, setSelectedBaseId] = useState('');
@@ -1075,6 +67,11 @@ const OccasionMenuPage = () => {
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '') || '';
+
+    // Normalize occasion keys for comparison: strip spaces, hyphens, underscores, lowercase
+    // Handles: 'houseParty' === 'House Party' === 'house-party'
+    const normalizeOcc = (value) =>
+        (value || '').toLowerCase().replace(/[\s\-_]+/g, '');
 
     const flattenMealFeatures = (items) => {
         if (!items) return [];
@@ -1138,7 +135,7 @@ const OccasionMenuPage = () => {
     const apiPackages = useMemo(() => {
         if (!occasionKey || !apiMeals.length) return [];
         return apiMeals
-            .filter((meal) => slugify(meal.occasion) === occasionKey || meal.occasion === occasionKey)
+            .filter((meal) => normalizeOcc(meal.occasion) === normalizeOcc(occasionKey))
             .map((meal) => {
                 const features = flattenMealFeatures(meal.items).slice(0, 6);
                 const budgetPrice = Number(meal.price) || 0;
@@ -1164,35 +161,25 @@ const OccasionMenuPage = () => {
             });
     }, [apiMeals, occasionKey]);
 
-    // Merge static + API packages so admin-added plans always appear (even for known occasions)
+    // Show only admin-created meal plans (no static seed data)
     const occasionData = useMemo(() => {
-        const staticData = occasionKey ? mealPackagesByOccasion[occasionKey] : null;
-        const dynamicData = apiPackages.length
-            ? {
-                displayName: apiMeals.find((m) => slugify(m.occasion) === occasionKey || m.occasion === occasionKey)?.occasion || occasionKey,
-                description: 'Curated menus for your occasion',
-                defaultGuests: 50,
-                defaultBudget: apiPackages[0]?.price || 400,
-                tags: ['Custom'],
-                packages: apiPackages,
-            }
-            : null;
-        if (!staticData && !dynamicData) return null;
-        if (!staticData) return dynamicData;
-        if (!apiPackages.length) return staticData;
+        if (!occasionKey) return null;
+        if (!apiPackages.length) return null;
         return {
-            ...staticData,
-            packages: [...apiPackages, ...staticData.packages],
+            displayName: apiMeals.find((m) => normalizeOcc(m.occasion) === normalizeOcc(occasionKey))?.occasion || occasionKey,
+            description: 'Curated menus for your occasion',
+            defaultGuests: 50,
+            defaultBudget: Math.max(...apiPackages.map((p) => p.price || 0), 400),
+            tags: [],
+            packages: apiPackages,
         };
     }, [occasionKey, apiPackages, apiMeals]);
     const packages = occasionData?.packages ?? [];
 
     useEffect(() => {
         if (!occasionKey) return;
-        if (occasionData) return;
-        if (apiLoaded && !apiPackages.length) {
-            navigate('/home');
-        }
+        if (!apiLoaded) return;
+        // nothing to redirect — we show an empty state per occasion
     }, [apiLoaded, apiPackages.length, occasionData, occasionKey, navigate]);
 
     useEffect(() => {
@@ -1233,6 +220,8 @@ const OccasionMenuPage = () => {
         });
         return ['all', ...Array.from(uniques)];
     }, [packages]);
+
+    const maxBudget = useMemo(() => Math.max(800, ...packages.map((p) => p.price || 0)), [packages]);
 
     const filteredPackages = useMemo(() => {
         if (!packages.length) {
@@ -1478,7 +467,40 @@ const OccasionMenuPage = () => {
     };
 
     if (!occasionData) {
-        return null;
+        return (
+            <div className="bg-[#fcf9f4] text-[#1c1c19] min-h-screen flex flex-col font-sans">
+                <nav className="bg-[#fcf9f4] border-b border-[#c2c9bb]/30 h-20 flex items-center px-6 lg:px-12 z-40 shadow-sm fixed top-0 left-0 right-0">
+                    <div className="flex items-center gap-2 mr-12">
+                        <BrandLogo imgClassName="h-8 w-auto" labelClassName="hidden" />
+                    </div>
+                    <div className="ml-auto flex items-center gap-3">
+                        <NavCartButton />
+                    </div>
+                </nav>
+                <div className="flex-1 flex items-center justify-center pt-20">
+                    {!apiLoaded ? (
+                        <div className="text-center space-y-3">
+                            <div className="w-10 h-10 border-4 border-[#154212]/20 border-t-[#154212] rounded-full animate-spin mx-auto" />
+                            <p className="text-[#42493e] font-medium">Loading menus…</p>
+                        </div>
+                    ) : (
+                        <div className="text-center max-w-md px-6">
+                            <div className="text-6xl mb-4">🍽️</div>
+                            <h2 className="text-2xl font-bold text-[#154212] mb-2">No meal plans yet</h2>
+                            <p className="text-[#42493e] mb-6">
+                                There are no meal plans available for this occasion yet. Check back soon or explore other occasions.
+                            </p>
+                            <button
+                                onClick={() => navigate('/occasions')}
+                                className="px-6 py-3 bg-[#154212] text-white rounded-2xl font-semibold hover:bg-[#1e5c1a] transition-colors"
+                            >
+                                Browse Occasions
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -1546,17 +568,17 @@ const OccasionMenuPage = () => {
                         <div className="flex items-center justify-between text-xs text-[#42493e] mb-2 px-1">
                             <span>₹150</span>
                             <span className="font-bold text-[#154212] text-sm">₹{budget}</span>
-                            <span>₹800</span>
+                            <span>₹{maxBudget}</span>
                         </div>
                         <input
                             type="range"
                             min={150}
-                            max={800}
+                            max={maxBudget}
                             value={budget}
                             onChange={(event) => setBudget(Number(event.target.value))}
                             className="w-full h-2 rounded-full cursor-pointer appearance-none"
                             style={{
-                                background: `linear-gradient(to right, #904b33 0%, #904b33 ${((budget - 150) / (800 - 150)) * 100}%, #e5e2dd ${((budget - 150) / (800 - 150)) * 100}%, #e5e2dd 100%)`
+                                background: `linear-gradient(to right, #904b33 0%, #904b33 ${((budget - 150) / (maxBudget - 150)) * 100}%, #e5e2dd ${((budget - 150) / (maxBudget - 150)) * 100}%, #e5e2dd 100%)`
                             }}
                         />
                     </div>

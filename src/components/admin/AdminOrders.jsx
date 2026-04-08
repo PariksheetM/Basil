@@ -288,7 +288,7 @@ const AdminOrders = () => {
                                 <p className="text-sm font-bold text-slate-900 mb-2">Customer Details</p>
                                 <div className="grid grid-cols-2 gap-2 text-sm text-slate-700">
                                     <span>Name: <strong>{selectedOrder.customer.name}</strong></span>
-                                    <span>Email: {selectedOrder.customer.email || '₹€”'}</span>
+                                    <span>Email: {selectedOrder.customer.email || '–'}</span>
                                     <span>Phone: {selectedOrder.customer.phone}</span>
                                     <span>Address: {selectedOrder.address}</span>
                                 </div>
@@ -363,7 +363,7 @@ const AdminOrders = () => {
                                                     : color
                                             }`}
                                         >
-                                            {selectedOrder.status === value ? '₹œ“ ' : ''}{label}
+                                            {selectedOrder.status === value ? '✓ ' : ''}{label}
                                         </button>
                                     ))}
                                 </div>

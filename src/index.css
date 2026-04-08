@@ -2,6 +2,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+/* Force dark: classes to only activate via .dark class, not OS preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html,
 body,
 #root {
@@ -19,16 +22,16 @@ body,
 }
 
 :root {
-  --admin-bg: linear-gradient(135deg, #f6f9ff 0%, #f0f5ff 45%, #eef9f4 100%);
+  --admin-bg: #f8fafc;
   --card-bg: #ffffff;
-  --card-border: #e5e7eb;
-  --muted: #6b7280;
+  --card-border: #e2e8f0;
+  --muted: #64748b;
   --text-strong: #0f172a;
-  --primary: #1fc29d;
-  --primary-strong: #0ea371;
-  --accent: #3b82f6;
-  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
-  --radius-xl: 18px;
+  --primary: #2563eb;
+  --primary-strong: #1d4ed8;
+  --accent: #7c3aed;
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --radius-xl: 12px;
 }
 
 .admin-bg {
@@ -41,88 +44,112 @@ body,
   border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(10px);
 }
 
 .admin-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
-  border-radius: 999px;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 13px;
-  color: #111827;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.admin-chip:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .admin-chip.primary {
-  background: #e8f7f1;
-  border-color: #c7eddf;
-  color: #0f9f7b;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.admin-chip.primary:hover {
+  background: #dbeafe;
 }
 
 .admin-pill {
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  background: #eef2ff;
-  color: #4338ca;
+  letter-spacing: 0.02em;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: 600;
   font-size: 12px;
 }
 
-.status-pill.pending { background: #fff7ed; color: #c2410c; }
-.status-pill.confirmed { background: #e0f2fe; color: #0369a1; }
-.status-pill.processing { background: #ecfeff; color: #0f766e; }
-.status-pill.delivered { background: #e7f8ef; color: #15803d; }
-.status-pill.cancelled { background: #fef2f2; color: #b91c1c; }
+.status-pill.pending    { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.status-pill.confirmed  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.status-pill.processing { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+.status-pill.delivered  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.status-pill.cancelled  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
 .nav-rail {
-  border-right: 1px solid #e5e7eb;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
+  border-right: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  color: var(--muted);
-  font-weight: 600;
-  transition: all 0.2s ease;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 13.5px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  width: 100%;
 }
 
-.nav-item:hover { background: #f1f5f9; color: #0f172a; }
-.nav-item.active { background: linear-gradient(135deg, #12c2b6, #0ea371); color: #fff; box-shadow: 0 12px 24px rgba(16, 185, 129, 0.25); }
-
-.soft-input {
+.nav-item:hover {
   background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 12px 14px;
-  font-size: 14px;
   color: #0f172a;
 }
 
+.nav-item.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.soft-input {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+
 .soft-input:focus {
-  outline: 2px solid #c7eddf;
-  border-color: #0ea371;
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .metric-card {
@@ -134,52 +161,58 @@ body,
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.08), transparent 40%),
-              radial-gradient(circle at 80% 0%, rgba(59, 130, 246, 0.08), transparent 35%);
+  background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.04), transparent 40%),
+              radial-gradient(circle at 80% 0%, rgba(124, 58, 237, 0.04), transparent 35%);
   pointer-events: none;
 }
 
 .subtle-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0ea371, #14b8a6);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
   color: #fff;
   font-weight: 700;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .table-soft {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px;
+  border-collapse: collapse;
 }
 
 .table-soft thead th {
   text-align: left;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #6b7280;
-  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .table-soft tbody tr {
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.1s;
+}
+
+.table-soft tbody tr:hover {
+  background: #f8fafc;
 }
 
 .table-soft tbody td {
-  padding: 14px;
+  padding: 13px 14px;
   font-size: 14px;
   color: #0f172a;
 }
