@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import HomePage from './components/HomePage';
-import MealBoxPage from './components/MealBoxPage';
 import SnackBoxPage from './components/SnackBoxPage';
 import CustomizeMealPage from './components/CustomizeMealPage';
 import OrderDetailsPage from './components/OrderDetailsPage';
@@ -44,7 +43,6 @@ function App() {
                     <Route path="/select-occasion" element={<OccasionSelectionPage />} />
                     <Route path="/occasion-menu" element={<OccasionMenuPage />} />
                     <Route path="/custom-event" element={<CustomEventPage />} />
-                    <Route path="/meal-box" element={<MealBoxPage />} />
                     <Route path="/snack-box" element={<SnackBoxPage />} />
                     <Route path="/bowls" element={<BowlPage />} />
                     <Route path="/buffet" element={<BuffetPage />} />

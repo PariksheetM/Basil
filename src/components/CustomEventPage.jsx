@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api.js';
-import { ArrowLeft, CheckCircle2, SendHorizonal, X, ChevronDown, ChevronUp } from 'lucide-react';
-import BrandLogo from './BrandLogo';
+import { CheckCircle2, SendHorizonal, X, ChevronDown, ChevronUp } from 'lucide-react';
+import MainNavbar from './MainNavbar';
 
 const DISH_FALLBACK = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&q=60';
 
@@ -250,27 +250,9 @@ const CustomEventPage = () => {
 
     return (
         <div className="min-h-screen bg-[#fcf9f4] text-[#1c1c19] font-sans">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#f0ede9]">
-                <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="p-2 rounded-full hover:bg-[#f0ede9] transition"
-                    >
-                        <ArrowLeft size={18} className="text-[#42493e]" />
-                    </button>
-                    <BrandLogo size="sm" />
-                    <span className="flex-1 text-sm font-semibold text-[#42493e] ml-1">Custom Event</span>
-                    {selected.size > 0 && (
-                        <span className="text-xs bg-[#154212] text-white rounded-full px-2.5 py-0.5 font-semibold">
-                            {selected.size} selected
-                        </span>
-                    )}
-                </div>
-            </header>
+            <MainNavbar />
 
-            <div className="max-w-5xl mx-auto px-4 py-6">
+            <div className="max-w-5xl mx-auto px-4 pt-36 pb-6">
                 {/* Hero */}
                 <div className="mb-6">
                     <h1 className="text-2xl font-extrabold text-[#154212] mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>

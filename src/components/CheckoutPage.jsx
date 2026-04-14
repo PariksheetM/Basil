@@ -25,6 +25,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import BrandLogo from './BrandLogo';
+import AuthService from '../services/authService';
 const MEAL_FALLBACK_IMG = 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=800&q=80';
 
 const PAYMENT_METHODS = [
@@ -39,12 +40,13 @@ const CheckoutPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { cart: contextCart, updateCartItem, removeFromCart, clearCart } = useCart();
+    const userData = AuthService.getUserData();
 
     const [cartItems, setCartItems] = useState([]);
     const [contactInfo, setContactInfo] = useState({
-        name: 'Sarah Jenkins',
+        name: userData?.full_name || 'Sarah Jenkins',
         phone: '+91 98765 43210',
-        email: 'sarah.jenkins@globex.com',
+        email: userData?.email || 'sarah.jenkins@globex.com',
     });
     const [eventDetails, setEventDetails] = useState({
         date: '2026-02-10',
@@ -197,7 +199,11 @@ const CheckoutPage = () => {
                     },
                     body: JSON.stringify({
                         ...payload,
-                        occasion: eventDetails?.occasion || 'Custom Event',
+                        occasion:
+                            cartItems[0]?.occasionLabel ||
+                            cartItems[0]?.occasionKey ||
+                            eventDetails?.occasion ||
+                            'Custom Event',
                         mealPlanName: cartItems[0]?.name || 'Meal Plan',
                         packageSelections: cartItems[0]?.customizations || null,
                         pricingSnapshot: {
@@ -279,10 +285,9 @@ const CheckoutPage = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => navigate('/meal-box')}
+                                    onClick={() => navigate('/occasion-menu')}
                                     className="text-sm font-medium text-[#f27f0d] hover:text-[#d96f0a]"
                                 >
-                                    Modify selection
                                 </button>
                             </div>
                             <div className="space-y-4">
@@ -387,10 +392,9 @@ const CheckoutPage = () => {
                                         <p className="text-sm text-gray-500 mb-4">Your banquet cart is empty.</p>
                                         <button
                                             type="button"
-                                            onClick={() => navigate('/meal-box')}
+                                            onClick={() => navigate('/occasion-menu')}
                                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f27f0d] text-white text-sm font-semibold shadow-sm hover:bg-[#d96f0a]"
                                         >
-                                            Plan a new menu
                                         </button>
                                     </div>
                                 )}

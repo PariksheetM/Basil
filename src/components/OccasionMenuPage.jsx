@@ -1,31 +1,16 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Minus, Users, Sliders, Leaf } from 'lucide-react';
+import { ArrowRight, Check, MapPin, Minus, Plus } from 'lucide-react';
 import { API_BASE_URL } from '../utils/api.js';
-import BrandLogo from './BrandLogo';
-import NavCartButton from './NavCartButton';
+import { imgUrl } from '../utils/imgUrl.js';
+import MainNavbar from './MainNavbar';
+import './MealBoxPage.css';
 
 const dietBadgeStyles = {
-    veg: {
-        wrapper: 'bg-green-100 text-green-700',
-        dot: 'bg-green-500',
-        label: 'Veg',
-    },
-    'non-veg': {
-        wrapper: 'bg-red-100 text-red-700',
-        dot: 'bg-red-500',
-        label: 'Non-Veg',
-    },
-    both: {
-        wrapper: 'bg-orange-100 text-orange-600',
-        dot: 'bg-orange-500',
-        label: 'Veg & Non-Veg',
-    },
-    satvik: {
-        wrapper: 'bg-amber-100 text-amber-700',
-        dot: 'bg-amber-500',
-        label: 'Satvik',
-    },
+    veg:      { wrapper: 'diet-pill veg',     label: 'Veg' },
+    'non-veg':{ wrapper: 'diet-pill non-veg', label: 'Non-Veg' },
+    both:     { wrapper: 'diet-pill both',    label: 'Veg & Non-Veg' },
+    satvik:   { wrapper: 'diet-pill satvik',  label: 'Satvik' },
 };
 
 const dietFilterLabels = {
@@ -87,6 +72,32 @@ const OccasionMenuPage = () => {
                 .map((item) => item.trim())
                 .filter(Boolean);
         }
+        return [];
+    };
+
+    const getPackageAddOns = (pkg) => {
+        if (!pkg) return [];
+
+        if (Array.isArray(pkg.customization?.addOns) && pkg.customization.addOns.length) {
+            return pkg.customization.addOns.map((opt, idx) => ({
+                id: opt.id ?? `custom-addon-${pkg.id}-${idx}`,
+                label: opt.label || opt.name || `Add-on ${idx + 1}`,
+                description: opt.description || '',
+                priceDelta: Number(opt.priceDelta ?? opt.pricePerPerson ?? 0),
+                image: opt.image || pkg.image || MEAL_FALLBACK_IMG,
+            }));
+        }
+
+        if (Array.isArray(pkg.addOns) && pkg.addOns.length) {
+            return pkg.addOns.map((opt, idx) => ({
+                id: opt.id ?? `addon-${pkg.id}-${idx}`,
+                label: opt.label || opt.name || `Add-on ${idx + 1}`,
+                description: opt.description || (opt.category ? `Category: ${opt.category}` : ''),
+                priceDelta: Number(opt.priceDelta ?? opt.pricePerPerson ?? opt.price ?? 0),
+                image: opt.image || pkg.image || MEAL_FALLBACK_IMG,
+            }));
+        }
+
         return [];
     };
 
@@ -156,6 +167,7 @@ const OccasionMenuPage = () => {
                     categoryItems: Array.isArray(meal.items) && meal.items.length && meal.items[0]?.items
                         ? meal.items
                         : null,
+                    addOns: Array.isArray(meal.addons) ? meal.addons : [],
                     customization: { basePrice: budgetPrice },
                 };
             });
@@ -320,7 +332,7 @@ const OccasionMenuPage = () => {
 
     const selectedProtein = selectedPackage?.customization?.proteins?.find((opt) => opt.id === selectedProteinId);
     const selectedBase = selectedPackage?.customization?.bases?.find((opt) => opt.id === selectedBaseId);
-    const addOnOptions = selectedPackage?.customization?.addOns ?? [];
+    const addOnOptions = useMemo(() => getPackageAddOns(selectedPackage), [selectedPackage]);
     const selectedAddOns = addOnOptions.filter((opt) => selectedAddOnIds.includes(opt.id));
 
     const basePrice = selectedPackage?.customization?.basePrice ?? selectedPackage?.price ?? 0;
@@ -382,7 +394,7 @@ const OccasionMenuPage = () => {
 
         const proteins = customization.proteins || [];
         const bases = customization.bases || [];
-        const addOns = customization.addOns || [];
+        const addOns = getPackageAddOns(pkg);
 
         const defaultProtein = proteins.find((option) => option.isDefault) || proteins[0] || null;
         const defaultBase = bases.find((option) => option.isDefault) || bases[0] || null;
@@ -468,32 +480,20 @@ const OccasionMenuPage = () => {
 
     if (!occasionData) {
         return (
-            <div className="bg-[#fcf9f4] text-[#1c1c19] min-h-screen flex flex-col font-sans">
-                <nav className="bg-[#fcf9f4] border-b border-[#c2c9bb]/30 h-20 flex items-center px-6 lg:px-12 z-40 shadow-sm fixed top-0 left-0 right-0">
-                    <div className="flex items-center gap-2 mr-12">
-                        <BrandLogo imgClassName="h-8 w-auto" labelClassName="hidden" />
-                    </div>
-                    <div className="ml-auto flex items-center gap-3">
-                        <NavCartButton />
-                    </div>
-                </nav>
-                <div className="flex-1 flex items-center justify-center pt-20">
+            <div className="menu-page">
+                <MainNavbar />
+                <div style={{ paddingTop: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
                     {!apiLoaded ? (
-                        <div className="text-center space-y-3">
-                            <div className="w-10 h-10 border-4 border-[#154212]/20 border-t-[#154212] rounded-full animate-spin mx-auto" />
-                            <p className="text-[#42493e] font-medium">Loading menus…</p>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ width: 40, height: 40, border: '4px solid rgba(166,120,56,0.2)', borderTopColor: 'var(--gold-deep)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+                            <p style={{ color: 'var(--slate)', fontWeight: 500 }}>Loading menus…</p>
                         </div>
                     ) : (
-                        <div className="text-center max-w-md px-6">
-                            <div className="text-6xl mb-4">🍽️</div>
-                            <h2 className="text-2xl font-bold text-[#154212] mb-2">No meal plans yet</h2>
-                            <p className="text-[#42493e] mb-6">
-                                There are no meal plans available for this occasion yet. Check back soon or explore other occasions.
-                            </p>
-                            <button
-                                onClick={() => navigate('/occasions')}
-                                className="px-6 py-3 bg-[#154212] text-white rounded-2xl font-semibold hover:bg-[#1e5c1a] transition-colors"
-                            >
+                        <div style={{ textAlign: 'center', maxWidth: 400, padding: '0 24px' }}>
+                            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🍽️</div>
+                            <h2 style={{ marginBottom: '8px' }}>No meal plans yet</h2>
+                            <p style={{ color: 'var(--slate)', marginBottom: '24px' }}>There are no meal plans for this occasion yet. Check back soon.</p>
+                            <button onClick={() => navigate('/occasions')} className="primary-cta" style={{ display: 'inline-flex', width: 'auto', padding: '12px 32px' }}>
                                 Browse Occasions
                             </button>
                         </div>
@@ -503,318 +503,393 @@ const OccasionMenuPage = () => {
         );
     }
 
+    const occasionHeroImage = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=80';
+
     return (
-        <div className="bg-[#fcf9f4] text-[#1c1c19] min-h-screen flex flex-col font-sans">
-            <nav className="bg-[#fcf9f4] border-b border-[#c2c9bb]/30 h-20 flex items-center px-6 lg:px-12 z-40 shadow-sm fixed top-0 left-0 right-0">
-                <div className="flex items-center gap-2 mr-12">
-                    <BrandLogo
-                        imgClassName="h-8 w-auto"
-                        labelClassName="hidden"
-                    />
-                </div>
-                <div className="ml-auto flex items-center gap-3">
-                    <NavCartButton />
-                </div>
-            </nav>
+        <div className="menu-page">
 
-            <div className="flex-1 flex pt-20">
-                {/* ── LEFT SIDEBAR (Fixed) ── */}
-                <aside className="hidden lg:flex flex-col w-[280px] xl:w-[300px] bg-[#f6f3ee] border-r border-[#c2c9bb]/30 p-6 overflow-y-auto custom-scrollbar flex-shrink-0 fixed top-20 left-0 h-[calc(100vh-5rem)] z-20">
-                    <div className="mb-6">
-                        <h2 className="text-sm font-extrabold text-[#154212] uppercase tracking-widest mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>Filters</h2>
-                        <p className="text-xs text-[#42493e]">Refine your selection</p>
-                    </div>
+            {/* ── NAV ── */}
+            <MainNavbar />
 
-                    {/* Guest Count */}
-                    <div className="mb-6">
-                        <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            <Users size={14} className="text-[#904b33]" /> Guest Count
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => adjustGuests(-1)}
-                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#c2c9bb]/40 text-[#42493e] hover:bg-[#fcf9f4] hover:border-[#904b33]/40 transition-all shadow-sm"
-                            >
-                                <Minus size={14} />
-                            </button>
-                            <input
-                                type="number"
-                                min={1}
-                                value={guestCount}
-                                onChange={(e) => {
-                                    const v = parseInt(e.target.value, 10);
-                                    setGuestCount(isNaN(v) || v < 1 ? 1 : v);
-                                }}
-                                className="w-20 h-9 text-center font-bold text-[#154212] text-lg bg-white border border-[#c2c9bb]/40 rounded-xl outline-none focus:border-[#904b33] focus:ring-2 focus:ring-[#904b33]/20 transition-all shadow-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => adjustGuests(1)}
-                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#c2c9bb]/40 text-[#42493e] hover:bg-[#fcf9f4] hover:border-[#904b33]/40 transition-all shadow-sm"
-                            >
-                                +
-                            </button>
+            <main>
+                {/* ── HERO BANNER ── */}
+                <section className="menu-hero">
+                    <div className="shell">
+                        <div className="hero-banner">
+                            <img className="hero-banner__bg" src={imgUrl(occasionHeroImage)} alt={occasionData.displayName} />
+                            <div className="hero-banner__overlay" />
+                            <div className="hero-banner__content">
+                                <p className="hero-banner__kicker">Occasion Menu</p>
+                                <h1>{occasionData.displayName}</h1>
+                                <p>{occasionData.description}</p>
+                            </div>
                         </div>
                     </div>
+                </section>
 
-                    {/* Budget Range */}
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                <Sliders size={14} className="text-[#904b33]" /> Budget Range
-                            </span>
+                {/* ── CONTROLS STRIP ── */}
+                <section className="menu-controls">
+                    <div className="shell">
+                        <div className="controls-dashboard">
+                            <div className="control-group">
+                                <span className="control-label">Guest Count</span>
+                                <div className="stepper">
+                                    <button type="button" onClick={() => adjustGuests(-5)}><Minus size={16} /></button>
+                                    <span>{guestCount}</span>
+                                    <button type="button" onClick={() => adjustGuests(5)}><Plus size={16} /></button>
+                                </div>
+                            </div>
+
+                            <div className="control-group">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span className="control-label">Budget Per Plate</span>
+                                    <span className="budget-scale highlight">₹{budget}</span>
+                                </div>
+                                <div className="budget-control">
+                                    <input type="range" min={200} max={maxBudget} step={25} value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
+                                    <div className="budget-scale">
+                                        <span>₹200</span>
+                                        <span>₹{maxBudget}+</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="control-group" style={{ alignItems: 'flex-start' }}>
+                                <span className="control-label">Cuisine Focus</span>
+                                <div className="chip-row">
+                                    {cuisineFilters.map((f) => (
+                                        <button key={f} type="button" className={`chip ${selectedCuisine === f ? 'is-active' : ''}`} onClick={() => setSelectedCuisine(f)}>
+                                            {f}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-[#42493e] mb-2 px-1">
-                            <span>₹150</span>
-                            <span className="font-bold text-[#154212] text-sm">₹{budget}</span>
-                            <span>₹{maxBudget}</span>
-                        </div>
-                        <input
-                            type="range"
-                            min={150}
-                            max={maxBudget}
-                            value={budget}
-                            onChange={(event) => setBudget(Number(event.target.value))}
-                            className="w-full h-2 rounded-full cursor-pointer appearance-none"
-                            style={{
-                                background: `linear-gradient(to right, #904b33 0%, #904b33 ${((budget - 150) / (maxBudget - 150)) * 100}%, #e5e2dd ${((budget - 150) / (maxBudget - 150)) * 100}%, #e5e2dd 100%)`
-                            }}
-                        />
                     </div>
+                </section>
 
-                    {/* Dietary Needs */}
-                    <div className="mb-6">
-                        <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            <Leaf size={14} className="text-[#904b33]" /> Dietary Needs
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                            {dietFilters.map((filter) => {
-                                const label = dietFilterLabels[filter] || filter;
-                                const isActive = dietFilter === filter;
-                                return (
-                                    <button
-                                        key={filter}
-                                        type="button"
-                                        onClick={() => setDietFilter(filter)}
-                                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${isActive
-                                            ? 'bg-[#904b33] text-white border-[#904b33] shadow-sm'
-                                            : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#904b33]/50 hover:text-[#154212]'
-                                        }`}
-                                    >
-                                        {label}
+                {/* ── MAIN CONTENT: sidebar + grid ── */}
+                <section className="menu-content">
+                    <div className="shell menu-layout">
+
+                        {/* ── SIDEBAR (LEFT) ── */}
+                        <aside className="menu-aside" style={{ top: '160px' }}>
+                            <div className="aside-panel" style={{ maxHeight: 'calc(100vh - 170px)', minHeight: '74vh' }}>
+                                <header className="aside-header">
+                                    <div>
+                                        <h3>Your Box</h3>
+                                        <p>{selectedPackage?.name || 'Select a box to begin.'}</p>
+                                    </div>
+                                    {selectedPackage?.customization?.category
+                                        ? <span className="category-pill">{selectedPackage.customization.category}</span>
+                                        : selectedPackage && <span className="category-pill">{selectedPackage.diet?.toUpperCase() || 'CUSTOM'}</span>
+                                    }
+                                </header>
+
+                                {selectedPackage && (
+                                    <div className="price-tile">
+                                        <span>Base</span>
+                                        <strong>{formatCurrency(basePrice)}</strong>
+                                    </div>
+                                )}
+
+                                <div className="aside-scroll">
+                                    {selectedPackage?.customization?.proteins?.length > 0 ? (
+                                        <>
+                                            <section>
+                                                <div className="section-heading">
+                                                    <span>01</span>
+                                                    <h4>Protein / Main</h4>
+                                                </div>
+                                                <div className="option-stack">
+                                                    {selectedPackage.customization.proteins.map((opt) => (
+                                                        <label key={opt.id} className={`custom-option ${selectedProteinId === opt.id ? 'is-active' : ''}`}>
+                                                            <span>
+                                                                <input type="radio" checked={selectedProteinId === opt.id} onChange={() => setSelectedProteinId(opt.id)} />
+                                                                    <img
+                                                                        src={imgUrl(opt.image || selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                        alt={opt.label}
+                                                                        className="option-thumb"
+                                                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                    />
+                                                                    {opt.label}
+                                                            </span>
+                                                            <em>{opt.priceDelta > 0 ? `+ ₹${opt.priceDelta}` : 'Incl.'}</em>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </section>
+
+                                            {selectedPackage.customization.bases?.length > 0 && (
+                                                <section>
+                                                    <div className="section-heading">
+                                                        <span>02</span>
+                                                        <h4>Carb / Base</h4>
+                                                    </div>
+                                                    <div className="option-stack">
+                                                        {selectedPackage.customization.bases.map((opt) => (
+                                                            <label key={opt.id} className={`custom-option ${selectedBaseId === opt.id ? 'is-active' : ''}`}>
+                                                                <span>
+                                                                    <input type="radio" checked={selectedBaseId === opt.id} onChange={() => setSelectedBaseId(opt.id)} />
+                                                                    <img
+                                                                        src={imgUrl(opt.image || selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                        alt={opt.label}
+                                                                        className="option-thumb"
+                                                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                    />
+                                                                    {opt.label}
+                                                                </span>
+                                                                <em>{opt.priceDelta > 0 ? `+ ₹${opt.priceDelta}` : 'Incl.'}</em>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+
+                                            {addOnOptions.length > 0 && (
+                                                <section>
+                                                    <div className="section-heading">
+                                                        <span>03</span>
+                                                        <h4>Add-ons</h4>
+                                                    </div>
+                                                    <div className="option-stack">
+                                                        {addOnOptions.map((opt) => (
+                                                            <label key={opt.id} className={`custom-option checkbox ${selectedAddOnIds.includes(opt.id) ? 'is-active' : ''}`}>
+                                                                <span>
+                                                                    <input type="checkbox" checked={selectedAddOnIds.includes(opt.id)} onChange={() => toggleAddOn(opt.id)} />
+                                                                    <img
+                                                                        src={imgUrl(opt.image || selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                        alt={opt.label}
+                                                                        className="option-thumb"
+                                                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                    />
+                                                                    <div>
+                                                                        <strong>{opt.label}</strong>
+                                                                        {opt.description && <p>{opt.description}</p>}
+                                                                    </div>
+                                                                </span>
+                                                                <em>+ ₹{opt.priceDelta}</em>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+                                        </>
+                                    ) : selectedPackage?.categoryItems?.length > 0 ? (
+                                        <>
+                                            {selectedPackage.categoryItems.map((cat, ci) => (
+                                                <section key={cat.id || cat.name}>
+                                                    <div className="section-heading">
+                                                        <span>{String(ci + 1).padStart(2, '0')}</span>
+                                                        <h4>{cat.name}</h4>
+                                                    </div>
+                                                    <div className="option-stack">
+                                                        {(cat.items || []).map((item) => (
+                                                            <div key={item.id || item.name} className="custom-option" style={{ cursor: 'default' }}>
+                                                                <span>
+                                                                    <img
+                                                                        src={imgUrl(item.image || selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                        alt={item.name}
+                                                                        className="option-thumb"
+                                                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                    />
+                                                                    {item.name}
+                                                                </span>
+                                                                <em>Incl.</em>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            ))}
+                                            {addOnOptions.length > 0 && (
+                                                <section>
+                                                    <div className="section-heading">
+                                                        <span>+</span>
+                                                        <h4>Add-ons</h4>
+                                                    </div>
+                                                    <div className="option-stack">
+                                                        {addOnOptions.map((opt) => (
+                                                            <label key={opt.id} className={`custom-option checkbox ${selectedAddOnIds.includes(opt.id) ? 'is-active' : ''}`}>
+                                                                <span>
+                                                                    <input type="checkbox" checked={selectedAddOnIds.includes(opt.id)} onChange={() => toggleAddOn(opt.id)} />
+                                                                    <img
+                                                                        src={imgUrl(opt.image || selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                        alt={opt.label}
+                                                                        className="option-thumb"
+                                                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                    />
+                                                                    <div>
+                                                                        <strong>{opt.label}</strong>
+                                                                        {opt.description && <p>{opt.description}</p>}
+                                                                    </div>
+                                                                </span>
+                                                                <em>+ ₹{opt.priceDelta}</em>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+                                        </>
+                                    ) : selectedPackage ? (
+                                        <>
+                                            <section>
+                                                <div className="section-heading">
+                                                    <span>01</span>
+                                                    <h4>Included Items</h4>
+                                                </div>
+                                                <div className="option-stack">
+                                                    {(selectedPackage.features || []).map((f, i) => (
+                                                        <div key={i} className="custom-option" style={{ cursor: 'default' }}>
+                                                            <span>
+                                                                <img
+                                                                    src={imgUrl(selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                    alt={f}
+                                                                    className="option-thumb"
+                                                                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                />
+                                                                {f}
+                                                            </span>
+                                                            <em>Incl.</em>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                            {addOnOptions.length > 0 && (
+                                                <section>
+                                                    <div className="section-heading">
+                                                        <span>02</span>
+                                                        <h4>Add-ons</h4>
+                                                    </div>
+                                                    <div className="option-stack">
+                                                        {addOnOptions.map((opt) => (
+                                                            <label key={opt.id} className={`custom-option checkbox ${selectedAddOnIds.includes(opt.id) ? 'is-active' : ''}`}>
+                                                                <span>
+                                                                    <input type="checkbox" checked={selectedAddOnIds.includes(opt.id)} onChange={() => toggleAddOn(opt.id)} />
+                                                                    <img
+                                                                        src={imgUrl(opt.image || selectedPackage.image || MEAL_FALLBACK_IMG)}
+                                                                        alt={opt.label}
+                                                                        className="option-thumb"
+                                                                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = MEAL_FALLBACK_IMG; }}
+                                                                    />
+                                                                    <div>
+                                                                        <strong>{opt.label}</strong>
+                                                                        {opt.description && <p>{opt.description}</p>}
+                                                                    </div>
+                                                                </span>
+                                                                <em>+ ₹{opt.priceDelta}</em>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="placeholder-text">Select a package to configure your box.</p>
+                                    )}
+                                </div>
+
+                                <div className="aside-footer">
+                                    <div className="estimate-row">
+                                        <div>
+                                            <span>Est. Total ({guestCount} Guests)</span>
+                                            <strong>{formatCurrency(estimateTotal)}</strong>
+                                        </div>
+                                    </div>
+                                    <button type="button" className="primary-cta" onClick={() => handleProceedToCustomize()} disabled={!selectedPackage}>
+                                        Proceed to Checkout
+                                        <ArrowRight size={16} />
                                     </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Cuisine Categories */}
-                    <div className="mb-6">
-                        <span className="flex items-center gap-2 text-xs font-bold text-[#42493e] uppercase tracking-widest mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            Catering Categories
-                        </span>
-                        <div className="flex flex-col gap-1.5">
-                            {cuisineFilters.map((filter) => (
-                                <button
-                                    key={filter}
-                                    type="button"
-                                    onClick={() => setSelectedCuisine(filter)}
-                                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${selectedCuisine === filter
-                                        ? 'bg-[#154212] text-white shadow-sm'
-                                        : 'text-[#42493e] hover:bg-white hover:shadow-sm'
-                                    }`}
-                                >
-                                    {filter}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Birthday-specific filters */}
-                    {occasionKey === 'birthday' && (
-                        <div className="mb-6 space-y-4">
-                            <div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-[#42493e] mb-2 block" style={{ fontFamily: 'Manrope, sans-serif' }}>Party Type</span>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {['all', 'kids', 'adult'].map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            onClick={() => setPartyTypeFilter(option)}
-                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${partyTypeFilter === option
-                                                ? 'bg-[#154212] text-white border-[#154212]'
-                                                : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#154212]/30'
-                                            }`}
-                                        >
-                                            {option === 'all' ? 'All' : option === 'kids' ? 'Kids' : 'Adult'}
-                                        </button>
-                                    ))}
                                 </div>
                             </div>
-                            <div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-[#42493e] mb-2 block" style={{ fontFamily: 'Manrope, sans-serif' }}>Venue</span>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {['all', 'indoor', 'outdoor'].map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            onClick={() => setVenueFilter(option)}
-                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${venueFilter === option
-                                                ? 'bg-[#154212] text-white border-[#154212]'
-                                                : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#154212]/30'
-                                            }`}
-                                        >
-                                            {option === 'all' ? 'Any' : option === 'indoor' ? 'Indoor' : 'Outdoor'}
-                                        </button>
-                                    ))}
-                                </div>
+                        </aside>
+
+                        {/* ── CARD GRID (RIGHT) ── */}
+                        <div className="menu-main">
+
+                            {/* Diet filter chips */}
+                            <div className="chip-row" style={{ marginBottom: '24px' }}>
+                                {dietFilters.map((filter) => (
+                                    <button key={filter} type="button" className={`chip ${dietFilter === filter ? 'is-active' : ''}`} onClick={() => setDietFilter(filter)}>
+                                        {dietFilterLabels[filter] || filter}
+                                    </button>
+                                ))}
                             </div>
-                            <div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-[#42493e] mb-2 block" style={{ fontFamily: 'Manrope, sans-serif' }}>Live Counter</span>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {[{ key: 'all', label: 'Any' }, { key: 'required', label: 'Required' }, { key: 'not-required', label: 'Not Needed' }].map((option) => (
-                                        <button
-                                            key={option.key}
-                                            type="button"
-                                            onClick={() => setLiveCounterFilter(option.key)}
-                                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${liveCounterFilter === option.key
-                                                ? 'bg-[#154212] text-white border-[#154212]'
-                                                : 'bg-white text-[#42493e] border-[#c2c9bb]/60 hover:border-[#154212]/30'
-                                            }`}
-                                        >
-                                            {option.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </aside>
 
-                {/* ── RIGHT CONTENT AREA ── */}
-                <main className="flex-1 overflow-y-auto px-6 lg:px-12 py-10 custom-scrollbar bg-[#fcf9f4] lg:ml-[280px] xl:ml-[300px]">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="mb-12">
-                            <h1 className="text-4xl md:text-5xl font-extrabold text-[#154212] tracking-tight mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>Premium Meal Boxes</h1>
-                            <p className="text-[#42493e] text-lg max-w-2xl">{occasionData.description}</p>
-                        </div>
+                            <div className="package-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
+                                {noPackages && (
+                                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '48px 20px', background: '#fff', borderRadius: '24px', boxShadow: '0 12px 24px rgba(0,0,0,0.06)' }}>
+                                        <p style={{ fontWeight: 600, fontSize: '1.1rem', fontFamily: "'Playfair Display', serif", color: 'var(--stone)' }}>No menus match your filters.</p>
+                                        <p style={{ color: 'var(--slate)', marginTop: '8px' }}>Try adjusting the budget, diet, or cuisine filters.</p>
+                                    </div>
+                                )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-32">
-                            {noPackages && (
-                                <div className="col-span-full bg-white rounded-[24px] p-12 text-center shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)]">
-                                    <p className="text-lg font-semibold text-[#154212]">No menus match your filters.</p>
-                                    <p className="text-sm text-[#42493e] mt-2">
-                                        Try adjusting the budget, diet, or cuisine filters to explore more options.
-                                    </p>
-                                </div>
-                            )}
-
-                            {!noPackages &&
-                                filteredPackages.map((pkg) => {
+                                {!noPackages && filteredPackages.map((pkg) => {
                                     const dietStyles = dietBadgeStyles[pkg.diet] || dietBadgeStyles.veg;
                                     const isSelected = pkg.id === selectedPackageId;
 
                                     return (
                                         <article
                                             key={pkg.id}
-                                            role="button"
-                                            tabIndex={pkg.isAvailable ? 0 : -1}
+                                            className={`package-card ${isSelected ? 'is-selected' : ''} ${!pkg.isAvailable ? 'is-disabled' : ''}`}
                                             onClick={() => pkg.isAvailable && setSelectedPackageId(pkg.id)}
-                                            onKeyDown={(e) =>
-                                                pkg.isAvailable && (e.key === 'Enter' || e.key === ' ')
-                                                    ? setSelectedPackageId(pkg.id)
-                                                    : null
-                                            }
-                                            className={`bg-white rounded-[24px] overflow-hidden transition-all duration-300 group flex flex-col h-full border hover:-translate-y-2 shadow-[0_10px_30px_-10px_rgba(28,28,25,0.05)] hover:shadow-[0_20px_40px_-8px_rgba(28,28,25,0.1)] cursor-pointer ${isSelected
-                                                ? 'border-[#154212] ring-2 ring-[#154212]/20'
-                                                : 'border-transparent hover:border-[#904b33]/20'
-                                            }`}
                                         >
-                                            <div className="relative h-56 bg-[#f0ede9] overflow-hidden">
+                                            <div className="package-card__media" style={{ height: '160px' }}>
                                                 <img
-                                                    src={pkg.image || MEAL_FALLBACK_IMG}
+                                                    src={pkg.image ? imgUrl(pkg.image) : 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80'}
                                                     alt={pkg.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                    onError={(event) => {
-                                                        event.currentTarget.onerror = null;
-                                                        event.currentTarget.src = MEAL_FALLBACK_IMG;
-                                                    }}
+                                                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80'; }}
                                                 />
                                                 {!pkg.isAvailable && (
-                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                        <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded">SOLD OUT</span>
+                                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <span style={{ background: '#fff', color: '#000', fontSize: '0.75rem', fontWeight: 700, padding: '4px 12px', borderRadius: '999px' }}>SOLD OUT</span>
                                                     </div>
                                                 )}
+                                                {pkg.badge && (
+                                                    <span className="badge bestseller">{pkg.badge.label}</span>
+                                                )}
                                             </div>
-                                            <div className="p-5 flex-1 flex flex-col">
-                                                <div className="flex justify-between items-start mb-3">
-                                                    <div className="flex-1">
-                                                        <h3 className="font-extrabold text-[#154212] tracking-tight text-xl leading-tight mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>{pkg.name}</h3>
-                                                    </div>
-                                                    <div className={`ml-2 flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${dietStyles.wrapper} flex-shrink-0`}>
-                                                        <div className={`w-2 h-2 rounded-full ${dietStyles.dot}`}></div>
-                                                        {dietStyles.label}
-                                                    </div>
-                                                </div>
-                                                <p className="text-[#42493e] text-sm mb-4 line-clamp-2">{pkg.description}</p>
-                                                <div className="bg-[#f6f3ee] rounded-xl p-3 mb-4 flex-1">
-                                                    <ul className="text-sm space-y-2 text-[#42493e]">
-                                                        {pkg.features.map((feature) => (
-                                                            <li key={feature} className="flex items-start gap-2">
-                                                                <CheckCircle size={16} className="text-[#904b33] mt-0.5 flex-shrink-0" />
-                                                                <span className="flex-1">{feature}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                                <div className="flex items-center justify-between mt-auto pt-3">
+                                            <div className="package-card__body" style={{ padding: '16px', gap: '10px' }}>
+                                                <header>
                                                     <div>
-                                                        <span className="block text-2xl font-extrabold text-[#154212]" style={{ fontFamily: 'Manrope, sans-serif' }}>{formatCurrency(pkg.price)}</span>
-                                                        <span className="text-xs text-[#42493e]">per plate</span>
+                                                        <h4>{pkg.name}</h4>
+                                                        <p>{pkg.description}</p>
+                                                    </div>
+                                                </header>
+                                                <div style={{ paddingBottom: '12px' }}>
+                                                    <span className={dietStyles.wrapper}>{dietStyles.label}</span>
+                                                </div>
+                                                <ul className="feature-list">
+                                                    {pkg.features.slice(0, 4).map((feature, i) => (
+                                                        <li key={i}>
+                                                            <Check size={14} />
+                                                            {feature}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <footer>
+                                                    <div className="card-price">
+                                                        <strong>{formatCurrency(pkg.price)}</strong>
+                                                        <small>per plate</small>
                                                     </div>
                                                     <button
                                                         type="button"
-                                                        onClick={(e) => { e.stopPropagation(); pkg.isAvailable && handleProceedToCustomize(pkg); }}
+                                                        className="ghost-cta"
+                                                        onClick={(e) => { e.stopPropagation(); if (pkg.isAvailable) setSelectedPackageId(pkg.id); }}
                                                         disabled={!pkg.isAvailable}
-                                                        className={`py-2 px-5 rounded-full font-bold text-sm transition-all shadow-sm ${!pkg.isAvailable
-                                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                                            : isSelected
-                                                                ? 'bg-gradient-to-r from-[#154212] to-[#2d5a27] text-white shadow-[#154212]/30'
-                                                                : 'bg-gradient-to-r from-[#904b33] to-[#783922] text-white hover:shadow-md hover:-translate-y-0.5'
-                                                        }`}
                                                     >
-                                                        {isSelected ? '✓ Selected' : 'Customize & Select'}
+                                                        {isSelected ? 'Selected ✓' : 'Select'}
                                                     </button>
-                                                </div>
+                                                </footer>
                                             </div>
                                         </article>
                                     );
                                 })}
-                        </div>
-                    </div>
-
-                    {/* Floating checkout bar */}
-                    <div className="fixed bottom-8 right-8 z-50">
-                        {selectedPackage && (
-                            <div className="bg-[#154212] text-white rounded-full shadow-2xl px-6 py-3 flex items-center gap-4">
-                                <div className="text-sm">
-                                    <span className="uppercase text-xs text-white/60 tracking-wide">ESTIMATE ({guestCount} GUESTS)</span>
-                                    <div className="font-semibold">{itemsAddedLabel}</div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => handleProceedToCustomize()}
-                                    className="px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-gradient-to-r from-[#904b33] to-[#783922] shadow-lg hover:shadow-[#904b33]/30 hover:-translate-y-0.5 text-white"
-                                >
-                                    Proceed to Checkout
-                                    <ArrowRight size={16} />
-                                </button>
                             </div>
-                        )}
+                        </div>
+
                     </div>
-                </main>
-            </div>
+                </section>
+            </main>
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
     ArrowRight,
     Briefcase,
@@ -15,8 +15,7 @@ import {
     Star
 } from 'lucide-react';
 import AuthService from '../services/authService';
-import BrandLogo from './BrandLogo';
-import NavCartButton from './NavCartButton';
+import MainNavbar from './MainNavbar';
 import './HomePage.css';
 
 const heroSlides = [
@@ -203,19 +202,7 @@ const HomePage = () => {
 
     return (
         <div className="home-page">
-            <header className="home-nav">
-                <div className="nav-inner">
-                    <div className="nav-left">
-                        <BrandLogo
-                            labelClassName="brandmark-label"
-                            imgClassName="brandmark-image"
-                        />
-                    </div>
-                    <div className="nav-actions">
-                        <NavCartButton />
-                    </div>
-                </div>
-            </header>
+            <MainNavbar />
 
             <main>
                 <section className="hero-section">
@@ -359,53 +346,6 @@ const HomePage = () => {
                     </div>
                 </section>
             </main>
-
-            <footer className="site-footer">
-                <div className="shell">
-                    <div className="footer-inner">
-                        <div className="footer-brand">
-                            <span className="brandmark-label">CATALYST.</span>
-                            <p>Premium enterprise-grade bulk food ordering and catering platform for corporate and social events. Delivering excellence to your doorstep.</p>
-                        </div>
-                        <div>
-                            <h4>Company</h4>
-                            <ul>
-                                <li><Link to="#">About Us</Link></li>
-                                <li><Link to="#">Careers</Link></li>
-                                <li><Link to="#">Blog</Link></li>
-                                <li><Link to="#">Press</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4>Services</h4>
-                            <ul>
-                                <li><Link to="#">Meal Boxes</Link></li>
-                                <li><Link to="#">Buffet Catering</Link></li>
-                                <li><Link to="#">Corporate Events</Link></li>
-                                <li><Link to="#">Custom Menus</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4>Stay Informed</h4>
-                            <p style={{ color: '#a89f91', fontSize: '0.9rem', marginBottom: '8px' }}>Join our newsletter for exclusive menus.</p>
-                            <form className="newsletter-form">
-                                <input type="email" placeholder="Your email address" />
-                                <button type="button" aria-label="Subscribe">
-                                    <ArrowRight size={18} />
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div className="footer-base">
-                        <p>© {new Date().getFullYear()} Catalyst Inc. All rights reserved.</p>
-                        <div className="footer-links">
-                            <Link to="#">Privacy Policy</Link>
-                            <Link to="#">Terms of Service</Link>
-                            <Link to="#">Cookies</Link>
-                        </div>
-                    </div>
-                </div>
-            </footer>
 
             <div className="mobile-quick-nav">
                 <button type="button" onClick={() => navigate('/home')} className="is-active">

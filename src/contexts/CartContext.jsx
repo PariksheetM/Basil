@@ -15,6 +15,7 @@ export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
     const [cartCount, setCartCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [hydrated, setHydrated] = useState(false);
 
     // Load cart from localStorage on mount
     useEffect(() => {
@@ -22,24 +23,28 @@ export const CartProvider = ({ children }) => {
         if (savedCart) {
             try {
                 const parsedCart = JSON.parse(savedCart);
-                setCart(parsedCart);
-                const count = parsedCart.reduce((total, item) => total + item.quantity, 0);
+                const normalizedCart = Array.isArray(parsedCart) ? parsedCart : [];
+                setCart(normalizedCart);
+                const count = normalizedCart.reduce((total, item) => total + (Number(item.quantity) || 1), 0);
                 setCartCount(count);
             } catch (error) {
                 console.error('Error loading cart from localStorage:', error);
                 setCart([]);
             }
         }
+        setHydrated(true);
     }, []);
 
     // Save cart to localStorage whenever it changes
     useEffect(() => {
-        if (cart && cart.length >= 0) {
-            localStorage.setItem('occasionCart', JSON.stringify(cart));
-            const count = cart.reduce((total, item) => total + item.quantity, 0);
-            setCartCount(count);
+        if (!hydrated) {
+            return;
         }
-    }, [cart]);
+
+        localStorage.setItem('occasionCart', JSON.stringify(cart));
+        const count = cart.reduce((total, item) => total + (Number(item.quantity) || 1), 0);
+        setCartCount(count);
+    }, [cart, hydrated]);
 
     const refreshCart = async () => {
         // For backend integration (traditional menu items)

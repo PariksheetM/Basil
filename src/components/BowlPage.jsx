@@ -1,7 +1,7 @@
 import React from 'react';
-import { ArrowLeft, ShoppingCart, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { imgUrl } from '../utils/imgUrl.js';
+import MainNavbar from './MainNavbar';
 
 const BowlPage = () => {
     const navigate = useNavigate();
@@ -54,25 +54,14 @@ const BowlPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-                <header className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-gray-600 hover:text-gray-900 transition-colors">
-                        <ArrowLeft size={24} />
-                    </button>
-                    <div className="relative">
-                        <ShoppingCart size={24} className="text-gray-600" />
-                        <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
-                    </div>
-                </header>
-            </div>
+            <MainNavbar />
 
             <div className="max-w-7xl mx-auto">
                 {/* Quick Nav Options */}
                 <div className="pt-6 px-4">
                     <div className="flex gap-4 overflow-x-auto no-scrollbar md:justify-center md:gap-8 pb-2">
                         {[
-                            { name: 'MealBox', img: '/meal-box-salad.png', price: '249', route: '/meal-box', active: false },
+                            { name: 'MealBox', img: '/meal-box-salad.png', price: '249', route: '/occasion-menu', active: false },
                             { name: 'SnackBox', img: '/snack-box-coffee.png', price: '129', route: '/snack-box', active: false },
                             { name: 'Bowls', img: '/fried-rice.png', price: '299', route: '/bowls', active: true },
                         ].map((item) => (

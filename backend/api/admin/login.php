@@ -5,6 +5,7 @@ $dbPath = __DIR__ . '/../../database/food_ordering.db';
 // CORS: allow local dev and deployed frontend
 $allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://basil-five.vercel.app',
     'https://qsr.catalystsolutions.eco',
 ];

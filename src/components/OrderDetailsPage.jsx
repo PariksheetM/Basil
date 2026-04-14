@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowLeft, CheckCircle2, Download, Mail, Receipt, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
+import { jsPDF } from 'jspdf';
 
 const formatCurrency = (value) => `₹${value.toLocaleString('en-IN')}`;
 
@@ -61,19 +62,50 @@ const OrderDetailsPage = () => {
     const handleDownloadInvoice = () => {
         const orderId = confirmation.orderNumber || 'order';
         const items = confirmation.cartItems || [];
-        const lines = items
-            .map((item) => `• ${item.name} — ${item.guests || confirmation.totalGuests || 0} guests — ${formatCurrency(item.total || 0)}`)
-            .join('\n');
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        let y = 20;
 
-        const invoiceText = `Catalyst Catering Invoice\nOrder: ${orderId}\nDate: ${formattedDate}\nGuests: ${confirmation.totalGuests || 'N/A'}\nVenue: ${confirmation.eventDetails?.venue || 'Not provided'}\n\nItems:\n${lines || 'No items'}\n\nTotal Payable: ${formatCurrency(confirmation.totals?.grandTotal || 0)}`;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.text('Catalyst Catering Invoice', 14, y);
+        y += 10;
 
-        const blob = new Blob([invoiceText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `invoice-${orderId}.txt`;
-        link.click();
-        URL.revokeObjectURL(url);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.text(`Order: ${orderId}`, 14, y);
+        y += 7;
+        doc.text(`Date: ${formattedDate}`, 14, y);
+        y += 7;
+        doc.text(`Guests: ${confirmation.totalGuests || 'N/A'}`, 14, y);
+        y += 7;
+
+        const venueLines = doc.splitTextToSize(`Venue: ${confirmation.eventDetails?.venue || 'Not provided'}`, pageWidth - 28);
+        doc.text(venueLines, 14, y);
+        y += venueLines.length * 6 + 4;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Items', 14, y);
+        y += 8;
+        doc.setFont('helvetica', 'normal');
+
+        if (!items.length) {
+            doc.text('No items', 14, y);
+            y += 7;
+        } else {
+            items.forEach((item, idx) => {
+                const line = `${idx + 1}. ${item.name} - ${item.guests || confirmation.totalGuests || 0} guests - ${formatCurrency(item.total || 0)}`;
+                const wrapped = doc.splitTextToSize(line, pageWidth - 28);
+                doc.text(wrapped, 14, y);
+                y += wrapped.length * 6 + 2;
+            });
+        }
+
+        y += 4;
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Total Payable: ${formatCurrency(confirmation.totals?.grandTotal || 0)}`, 14, y);
+
+        doc.save(`invoice-${orderId}.pdf`);
     };
 
     return (

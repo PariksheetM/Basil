@@ -582,6 +582,15 @@
     gap: 12px;
 }
 
+.option-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(92, 75, 57, 0.14);
+}
+
 .custom-option.checkbox span {
     align-items: flex-start;
 }
@@ -942,6 +951,10 @@
 /* ------------------------------------- */
 /* MOBILE OVERRIDES                      */
 /* ------------------------------------- */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;

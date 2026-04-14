@@ -2,6 +2,7 @@
 // CORS: allow local dev and deployed frontend
 $allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://basil-five.vercel.app',
     'https://qsr.catalystsolutions.eco',
 ];
@@ -64,6 +65,19 @@ try {
     }
 
     if ($method === 'GET') {
+        $db->exec("CREATE TABLE IF NOT EXISTS quote_requests (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            name        TEXT    NOT NULL,
+            phone       TEXT    NOT NULL,
+            email       TEXT,
+            event_date  TEXT    NOT NULL,
+            guest_count INTEGER NOT NULL,
+            dishes_json TEXT    NOT NULL,
+            notes       TEXT,
+            status      TEXT    NOT NULL DEFAULT 'pending',
+            created_at  DATETIME DEFAULT (DATETIME('now'))
+        )");
+
         // Ensure contact_name column exists (for checkout-provided name)
         $hasContactName = false;
         $cols = $db->query("PRAGMA table_info(orders)")->fetchAll(PDO::FETCH_ASSOC);
@@ -93,26 +107,63 @@ try {
 
             $rawItems = $notes['items'] ?? [];
             $menuItems = [];
-            if (is_array($rawItems)) {
+            $rawAddOns = [];
+
+            if (is_array($rawItems) && count($rawItems) > 0) {
                 foreach ($rawItems as $item) {
-                    if (is_array($item)) {
-                        $menuItems[] = $item['name'] ?? $item['title'] ?? json_encode($item);
+                    if (!is_array($item)) {
+                        continue;
+                    }
+
+                    $selectedItems = $item['customizations']['selectedItems'] ?? [];
+                    if (is_array($selectedItems) && count($selectedItems) > 0) {
+                        foreach ($selectedItems as $selected) {
+                            if (is_array($selected)) {
+                                $menuItems[] = $selected['name'] ?? ($selected['title'] ?? 'Selected Item');
+                            } else {
+                                $menuItems[] = (string)$selected;
+                            }
+                        }
                     } else {
-                        $menuItems[] = (string)$item;
+                        $menuItems[] = $item['name'] ?? ($item['title'] ?? 'Meal Plan');
+                    }
+
+                    $selectedAddOns = $item['customizations']['addedItems'] ?? [];
+                    if (is_array($selectedAddOns) && count($selectedAddOns) > 0) {
+                        foreach ($selectedAddOns as $addon) {
+                            if (is_array($addon)) {
+                                $rawAddOns[] = [
+                                    'name' => $addon['name'] ?? ($addon['title'] ?? 'Add-on'),
+                                    'price' => isset($addon['price']) ? (float)$addon['price'] : 0,
+                                ];
+                            }
+                        }
                     }
                 }
             }
 
-            $rawAddOns = $notes['selections']['addOns'] ?? [];
-            $addOns = [];
-            if (is_array($rawAddOns)) {
-                foreach ($rawAddOns as $addOn) {
-                    if (is_array($addOn)) {
-                        $addOns[] = [
-                            'name' => $addOn['name'] ?? ($addOn['title'] ?? 'Add-on'),
-                            'price' => isset($addOn['price']) ? (float)$addOn['price'] : 0
-                        ];
+            // Backward compatibility with previous payload shape
+            if (empty($rawAddOns)) {
+                $legacyAddOns = $notes['selections']['addOns'] ?? [];
+                if (is_array($legacyAddOns)) {
+                    foreach ($legacyAddOns as $legacy) {
+                        if (is_array($legacy)) {
+                            $rawAddOns[] = [
+                                'name' => $legacy['name'] ?? ($legacy['title'] ?? 'Add-on'),
+                                'price' => isset($legacy['price']) ? (float)$legacy['price'] : 0,
+                            ];
+                        }
                     }
+                }
+            }
+
+            $addOns = [];
+            foreach ($rawAddOns as $addOn) {
+                if (is_array($addOn)) {
+                    $addOns[] = [
+                        'name' => $addOn['name'] ?? ($addOn['title'] ?? 'Add-on'),
+                        'price' => isset($addOn['price']) ? (float)$addOn['price'] : 0,
+                    ];
                 }
             }
 
@@ -136,11 +187,51 @@ try {
                 'addedItems' => $addOns
             ];
         }, $orders);
+
+        $quoteRows = $db->query("SELECT * FROM quote_requests ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+        $formattedQuotes = array_map(function($quote) {
+            $dishes = json_decode($quote['dishes_json'] ?? '[]', true) ?: [];
+            $dishNames = [];
+            foreach ($dishes as $dish) {
+                if (is_array($dish)) {
+                    $dishNames[] = $dish['name'] ?? 'Dish';
+                } else {
+                    $dishNames[] = (string)$dish;
+                }
+            }
+
+            return [
+                'id' => 'QUOTE-' . $quote['id'],
+                'customer' => [
+                    'name' => $quote['name'],
+                    'email' => $quote['email'] ?: 'N/A',
+                    'phone' => $quote['phone'] ?: 'N/A',
+                ],
+                'occasion' => 'Custom Event',
+                'mealPlan' => 'Quote Request',
+                'guestCount' => (int)$quote['guest_count'],
+                'basePrice' => 0,
+                'totalAmount' => 0,
+                'date' => $quote['event_date'] ?: date('Y-m-d', strtotime($quote['created_at'])),
+                'time' => 'N/A',
+                'status' => 'Quote-' . ($quote['status'] ?: 'pending'),
+                'address' => 'N/A',
+                'items' => $dishNames,
+                'addedItems' => [],
+                'notes' => $quote['notes'] ?? '',
+                'isQuote' => true,
+            ];
+        }, $quoteRows);
+
+        $allRows = array_merge($formattedOrders, $formattedQuotes);
+        usort($allRows, function($a, $b) {
+            return strcmp($b['date'] ?? '', $a['date'] ?? '');
+        });
         
         http_response_code(200);
         echo json_encode([
             'success' => true,
-            'data' => $formattedOrders
+            'data' => $allRows
         ]);
         
     } elseif ($method === 'PUT') {
@@ -149,6 +240,20 @@ try {
         
         if (!isset($data['orderId']) || !isset($data['status'])) {
             throw new Exception('Order ID and status are required');
+        }
+
+        if (strpos($data['orderId'], 'QUOTE-') === 0) {
+            $quoteId = (int)str_replace('QUOTE-', '', $data['orderId']);
+            $quoteStatus = strtolower(str_replace('Quote-', '', $data['status']));
+            $stmt = $db->prepare("UPDATE quote_requests SET status = :status WHERE id = :id");
+            $stmt->execute([':status' => $quoteStatus, ':id' => $quoteId]);
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Quote request status updated successfully'
+            ]);
+            exit;
         }
         
         $stmt = $db->prepare("UPDATE orders SET status = ?, updated_at = datetime('now') 
@@ -167,6 +272,19 @@ try {
         
         if (!isset($data['orderId'])) {
             throw new Exception('Order ID is required');
+        }
+
+        if (strpos($data['orderId'], 'QUOTE-') === 0) {
+            $quoteId = (int)str_replace('QUOTE-', '', $data['orderId']);
+            $stmt = $db->prepare("DELETE FROM quote_requests WHERE id = :id");
+            $stmt->execute([':id' => $quoteId]);
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Quote request deleted successfully'
+            ]);
+            exit;
         }
         
         $stmt = $db->prepare("DELETE FROM orders WHERE order_number = ?");

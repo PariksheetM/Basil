@@ -5,6 +5,7 @@ $dbPath = __DIR__ . '/../database/food_ordering.db';
 // CORS: allow local dev and deployed frontend
 $allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://basil-five.vercel.app',
     'https://qsr.catalystsolutions.eco',
 ];
@@ -77,15 +78,20 @@ try {
     if (password_verify($data->password, $row['password'])) {
         // Generate session token
         $session_token = bin2hex(random_bytes(32));
-        $expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
-        // Store session in database
-        $query = "INSERT INTO user_sessions (user_id, session_token, expires_at) VALUES (:user_id, :session_token, :expires_at)";
+        // Store session in database with SQLite datetime for consistency
+        $query = "INSERT INTO user_sessions (user_id, session_token, expires_at) VALUES (:user_id, :session_token, datetime('now', '+24 hours'))";
         $stmt = $db->prepare($query);
         $stmt->bindParam(":user_id", $row['id']);
         $stmt->bindParam(":session_token", $session_token);
-        $stmt->bindParam(":expires_at", $expires_at);
         $stmt->execute();
+
+        // Get the actual created_at and expires_at from database
+        $selectQuery = "SELECT created_at, expires_at FROM user_sessions WHERE session_token = :session_token LIMIT 1";
+        $selectStmt = $db->prepare($selectQuery);
+        $selectStmt->bindParam(":session_token", $session_token);
+        $selectStmt->execute();
+        $sessionData = $selectStmt->fetch(PDO::FETCH_ASSOC);
 
         http_response_code(200);
         echo json_encode(array(

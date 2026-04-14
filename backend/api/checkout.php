@@ -4,6 +4,7 @@ require_once '../config/database_sqlite.php';
 // CORS: allow local dev and deployed frontend
 $allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://basil-five.vercel.app',
     'https://qsr.catalystsolutions.eco',
 ];
@@ -48,7 +49,8 @@ try {
     $stmt->bindParam(":session_token", $session_token);
     $stmt->execute();
 
-    if ($stmt->rowCount() === 0) {
+    $session = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$session) {
         http_response_code(401);
         echo json_encode(array(
             "success" => false,
@@ -57,7 +59,6 @@ try {
         exit();
     }
 
-    $session = $stmt->fetch(PDO::FETCH_ASSOC);
     $user_id = $session['user_id'];
 
     $data = json_decode(file_get_contents("php://input"));
@@ -68,7 +69,8 @@ try {
     $stmt->bindParam(':user_id', $user_id);
     $stmt->execute();
 
-    if ($stmt->rowCount() === 0) {
+    $cart = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$cart) {
         http_response_code(404);
         echo json_encode(array(
             "success" => false,
@@ -77,7 +79,6 @@ try {
         exit();
     }
 
-    $cart = $stmt->fetch(PDO::FETCH_ASSOC);
     $order_id = $cart['id'];
 
     // Update order details

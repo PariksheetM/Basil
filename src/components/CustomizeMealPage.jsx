@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { imgUrl } from '../utils/imgUrl.js';
 import { CheckCircle2, ChevronRight, Headset, Minus, Plus, Star, Users } from 'lucide-react';
-import BrandLogo from './BrandLogo';
-import NavCartButton from './NavCartButton';
+import MainNavbar from './MainNavbar';
 import { useCart } from '../contexts/CartContext';
 import { API_BASE_URL } from '../utils/api.js';
+import AuthService from '../services/authService';
 
 const PACKAGE_FALLBACK = {
     id: 'royal-corporate-feast',
@@ -671,6 +671,13 @@ export default function CustomizeMealPage() {
 
     const routeState = location.state || {};
 
+    useEffect(() => {
+        if (routeState?.package) {
+            return;
+        }
+        navigate('/occasion-menu', { replace: true });
+    }, [navigate, routeState]);
+
     const packageInfo = {
         ...PACKAGE_FALLBACK,
         ...(routeState.package || {}),
@@ -787,11 +794,6 @@ export default function CustomizeMealPage() {
     };
     const handleExplore = () => goHome();
     const handleChatWithExpert = () => navigate('/account');
-    const handleSaveQuote = () => {
-        if (typeof window !== 'undefined') {
-            window.print();
-        }
-    };
 
     const guestCount = useMemo(
         () => Math.max(Number(routeState.guestCount) || 75, packageInfo.minGuests || 10),
@@ -910,12 +912,29 @@ export default function CustomizeMealPage() {
             ...(isBothDiet && { vegGuestCount, nonVegGuestCount }),
             image: packageImage,
             type: routeState.preference || 'both',
+            occasionKey: routeState.occasionKey || null,
+            occasionLabel: occasionName || routeState.occasionName || null,
             customizations: {
                 selectedItems: selectedNames,
                 addedItems,
             },
             totalPrice: grandTotal,
         };
+
+        if (!AuthService.isLoggedIn()) {
+            if (typeof window !== 'undefined') {
+                let pending = [];
+                try {
+                    pending = JSON.parse(window.localStorage.getItem('pendingCartItems') || '[]');
+                } catch {
+                    pending = [];
+                }
+                pending.push(cartItem);
+                window.localStorage.setItem('pendingCartItems', JSON.stringify(pending));
+            }
+            navigate('/login', { state: { redirectAfterLogin: location.pathname } });
+            return;
+        }
 
         addToCart(cartItem);
         setCartAddedToast(true);
@@ -927,10 +946,10 @@ export default function CustomizeMealPage() {
         : [{ id: 'none', name: 'No add-ons', type: 'neutral', priceDelta: 0 }];
 
     return (
-        <div className="font-sans bg-[#fcf9f4] text-[#1c1c19] min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="font-sans bg-[#f5f0e8] text-[#1c1c19] min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
             {/* Cart Added Toast */}
             {cartAddedToast && (
-                <div className="fixed top-6 right-6 z-[200] animate-[slideIn_0.3s_ease-out] bg-[#154212] text-white px-6 py-4 rounded-2xl shadow-[0_20px_60px_-12px_rgba(21,66,18,0.3)] flex items-center gap-3">
+                <div className="fixed top-28 right-6 z-[1500] animate-[slideIn_0.3s_ease-out] bg-[#154212] text-white px-6 py-4 rounded-2xl shadow-[0_20px_60px_-12px_rgba(21,66,18,0.3)] flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-emerald-300" />
                     <div>
                         <p className="text-sm font-bold">Added to Cart!</p>
@@ -939,27 +958,13 @@ export default function CustomizeMealPage() {
                 </div>
             )}
             <style>{`@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
-            {/* ── NAVBAR ── */}
-            <nav className="bg-[#fcf9f4] border-b border-[#c2c9bb]/30 h-20 flex items-center px-6 lg:px-12 z-40 shadow-sm fixed top-0 left-0 right-0">
-                <div className="flex items-center gap-2 mr-12">
-                    <BrandLogo imgClassName="h-8 w-auto" labelClassName="hidden" />
-                </div>
-                <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#42493e]">
-                    <button className="hover:text-[#904b33] transition-colors" type="button" onClick={goHome}>Home</button>
-                    <button className="hover:text-[#904b33] transition-colors" type="button" onClick={handleExplore}>Packages</button>
-                    <button className="hover:text-[#904b33] transition-colors" type="button">Venues</button>
-                    <button className="hover:text-[#904b33] transition-colors" type="button">About</button>
-                </div>
-                <div className="ml-auto flex items-center gap-3">
-                    <NavCartButton />
-                </div>
-            </nav>
+            <MainNavbar />
 
             {/* ── MAIN CONTENT ── */}
             <main className="pt-20 pb-36">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Breadcrumb */}
-                    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[#42493e]/70 mb-8">
+                    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[#5a5a50]/70 mb-8">
                         <button className="hover:text-[#904b33] transition-colors" type="button" onClick={goHome}>Home</button>
                         <ChevronRight className="w-4 h-4 text-[#c2c9bb]" />
                         <button
@@ -979,7 +984,7 @@ export default function CustomizeMealPage() {
                         <aside className="lg:col-span-4">
                             <div className="sticky top-24 space-y-6">
                                 {/* Package Hero Card */}
-                                <div className="bg-white rounded-[24px] overflow-hidden border border-[#c2c9bb]/20 shadow-[0_10px_30px_-10px_rgba(28,28,25,0.06)]">
+                                <div className="bg-white rounded-[24px] overflow-hidden border border-[#d8d3c9]/40 shadow-[0_10px_30px_-10px_rgba(28,28,25,0.06)]">
                                     <div className="h-64 bg-cover bg-center relative rounded-t-[24px] overflow-hidden" style={{ backgroundImage: `url(${imgUrl(packageImage)})` }}>
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#1c1c19]/80 via-[#1c1c19]/20 to-transparent"></div>
                                         <div className="absolute bottom-5 left-6">
@@ -996,30 +1001,30 @@ export default function CustomizeMealPage() {
                                                 <Star className="w-4 h-4" fill="currentColor" strokeWidth={1.5} />
                                                 <Star className="w-4 h-4" strokeWidth={1.5} />
                                             </div>
-                                            <span className="text-xs font-medium text-[#42493e]/60">4.9 (128 reviews)</span>
+                                            <span className="text-xs font-medium text-[#5a5a50]/60">4.9 (128 reviews)</span>
                                         </div>
                                         {/* Description */}
-                                        <p className="text-sm text-[#42493e] leading-relaxed">
+                                        <p className="text-sm text-[#5a5a50] leading-relaxed">
                                             {packageInfo.description || 'Complete service for upscale celebrations. Includes professional staff, premium plating, linens, and decor.'}
                                         </p>
                                         {/* Price & Capacity */}
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-[#f6f3ee] rounded-xl p-4">
-                                                <p className="text-[10px] uppercase tracking-widest text-[#42493e]/50 font-bold mb-1">Base Price</p>
+                                            <div className="bg-[#ede8df] rounded-xl p-4">
+                                                <p className="text-[10px] uppercase tracking-widest text-[#5a5a50]/50 font-bold mb-1">Base Price</p>
                                                 <p className="text-xl font-extrabold text-[#154212]" style={{ fontFamily: 'Manrope, sans-serif' }}>{formatCurrency(basePerPlate)}</p>
                                             </div>
-                                            <div className="bg-[#f6f3ee] rounded-xl p-4">
-                                                <p className="text-[10px] uppercase tracking-widest text-[#42493e]/50 font-bold mb-1">Total Guests</p>
+                                            <div className="bg-[#ede8df] rounded-xl p-4">
+                                                <p className="text-[10px] uppercase tracking-widest text-[#5a5a50]/50 font-bold mb-1">Total Guests</p>
                                                 <p className="text-sm font-bold text-[#1c1c19]">{guestCount} Guests</p>
                                             </div>
                                         </div>
 
                                         {/* Veg / Non-Veg Guest Splitter */}
                                         {isBothDiet && (
-                                            <div className="bg-[#f6f3ee] rounded-xl p-4 space-y-3">
+                                            <div className="bg-[#ede8df] rounded-xl p-4 space-y-3">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Users className="w-4 h-4 text-[#154212]" />
-                                                    <p className="text-[10px] uppercase tracking-widest text-[#42493e]/50 font-bold">Guest Split</p>
+                                                    <p className="text-[10px] uppercase tracking-widest text-[#5a5a50]/50 font-bold">Guest Split</p>
                                                 </div>
                                                 {/* Veg Guests */}
                                                 <div className="flex items-center justify-between">
@@ -1031,7 +1036,7 @@ export default function CustomizeMealPage() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleVegGuestChange(vegGuestCount - 1)}
-                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#d8d3c9]/50 flex items-center justify-center text-[#5a5a50] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
                                                         >
                                                             <Minus className="w-3.5 h-3.5" />
                                                         </button>
@@ -1039,12 +1044,12 @@ export default function CustomizeMealPage() {
                                                             type="number"
                                                             value={vegGuestCount}
                                                             onChange={(e) => handleVegGuestChange(e.target.value)}
-                                                            className="w-14 text-center text-sm font-bold bg-white border border-[#c2c9bb]/30 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-[#154212]"
+                                                            className="w-14 text-center text-sm font-bold bg-white border border-[#d8d3c9]/50 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-[#154212]"
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => handleVegGuestChange(vegGuestCount + 1)}
-                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#d8d3c9]/50 flex items-center justify-center text-[#5a5a50] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
                                                         >
                                                             <Plus className="w-3.5 h-3.5" />
                                                         </button>
@@ -1060,7 +1065,7 @@ export default function CustomizeMealPage() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleNonVegGuestChange(nonVegGuestCount - 1)}
-                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#d8d3c9]/50 flex items-center justify-center text-[#5a5a50] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
                                                         >
                                                             <Minus className="w-3.5 h-3.5" />
                                                         </button>
@@ -1068,12 +1073,12 @@ export default function CustomizeMealPage() {
                                                             type="number"
                                                             value={nonVegGuestCount}
                                                             onChange={(e) => handleNonVegGuestChange(e.target.value)}
-                                                            className="w-14 text-center text-sm font-bold bg-white border border-[#c2c9bb]/30 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-[#154212]"
+                                                            className="w-14 text-center text-sm font-bold bg-white border border-[#d8d3c9]/50 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-[#154212]"
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => handleNonVegGuestChange(nonVegGuestCount + 1)}
-                                                            className="w-7 h-7 rounded-lg bg-white border border-[#c2c9bb]/30 flex items-center justify-center text-[#42493e] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
+                                                            className="w-7 h-7 rounded-lg bg-white border border-[#d8d3c9]/50 flex items-center justify-center text-[#5a5a50] hover:bg-[#154212] hover:text-white hover:border-[#154212] transition-all"
                                                         >
                                                             <Plus className="w-3.5 h-3.5" />
                                                         </button>
@@ -1084,15 +1089,15 @@ export default function CustomizeMealPage() {
 
                                         {/* Included Services */}
                                         <div className="space-y-2.5">
-                                            <div className="flex items-center gap-2.5 text-sm text-[#42493e]">
+                                            <div className="flex items-center gap-2.5 text-sm text-[#5a5a50]">
                                                 <CheckCircle2 className="w-4 h-4 text-[#154212]" strokeWidth={2} />
                                                 <span>Service Fee Included</span>
                                             </div>
-                                            <div className="flex items-center gap-2.5 text-sm text-[#42493e]">
+                                            <div className="flex items-center gap-2.5 text-sm text-[#5a5a50]">
                                                 <CheckCircle2 className="w-4 h-4 text-[#154212]" strokeWidth={2} />
                                                 <span>Setup Included</span>
                                             </div>
-                                            <div className="flex items-center gap-2.5 text-sm text-[#42493e]">
+                                            <div className="flex items-center gap-2.5 text-sm text-[#5a5a50]">
                                                 <CheckCircle2 className="w-4 h-4 text-[#154212]" strokeWidth={2} />
                                                 <span>Catering Staff Included</span>
                                             </div>
@@ -1107,7 +1112,7 @@ export default function CustomizeMealPage() {
                                     </div>
                                     <div>
                                         <h4 className="text-sm font-bold text-[#154212]" style={{ fontFamily: 'Manrope, sans-serif' }}>Need assistance?</h4>
-                                        <p className="text-xs text-[#42493e]/70 mt-1">Our consultants can help craft the perfect menu.</p>
+                                        <p className="text-xs text-[#5a5a50]/70 mt-1">Our consultants can help craft the perfect menu.</p>
                                         <button className="text-[#904b33] text-xs font-bold mt-2 hover:underline" type="button" onClick={handleChatWithExpert}>Schedule a call →</button>
                                     </div>
                                 </div>
@@ -1118,14 +1123,14 @@ export default function CustomizeMealPage() {
                         <section className="lg:col-span-8 space-y-3">
                             {/* Veg / Non-Veg Tab Switcher */}
                             {isBothDiet && (
-                                <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm border border-[#c2c9bb]/20 w-fit mb-4">
+                                <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm border border-[#d8d3c9]/40 w-fit mb-4">
                                     <button
                                         type="button"
                                         onClick={() => setActiveDietTab('veg')}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
                                             activeDietTab === 'veg'
                                                 ? 'bg-[#154212] text-white shadow-sm'
-                                                : 'text-[#42493e] hover:bg-[#f6f3ee]'
+                                                : 'text-[#5a5a50] hover:bg-[#ede8df]'
                                         }`}
                                     >
                                         <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -1137,7 +1142,7 @@ export default function CustomizeMealPage() {
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
                                             activeDietTab === 'non-veg'
                                                 ? 'bg-[#904b33] text-white shadow-sm'
-                                                : 'text-[#42493e] hover:bg-[#f6f3ee]'
+                                                : 'text-[#5a5a50] hover:bg-[#ede8df]'
                                         }`}
                                     >
                                         <span className="w-2 h-2 rounded-full bg-rose-400"></span>
@@ -1153,9 +1158,9 @@ export default function CustomizeMealPage() {
                                 const hasAddons = section.items.some((i) => i.isAddon || i.priceDelta > 0);
 
                                 return (
-                                    <div key={section.id} className="bg-white rounded-2xl border border-[#e8e3db] overflow-hidden shadow-[0_2px_8px_-2px_rgba(28,28,25,0.05)]">
+                                    <div key={section.id} className="bg-white rounded-2xl border border-[#d8d3c9]/50 overflow-hidden shadow-[0_2px_10px_-2px_rgba(28,28,25,0.07)]">
                                         {/* Section header */}
-                                        <div className="flex items-center justify-between px-4 py-3 bg-[#f9f7f4] border-b border-[#ede9e2]">
+                                        <div className="flex items-center justify-between px-4 py-3 bg-[#ede8df] border-b border-[#d0cbc0]">
                                             <div className="flex items-center gap-2.5">
                                                 <span className="w-6 h-6 bg-[#154212] text-white rounded-full text-xs font-bold flex items-center justify-center shrink-0 leading-none">
                                                     {sectionIdx + 1}
@@ -1163,7 +1168,7 @@ export default function CustomizeMealPage() {
                                                 <h3 className="text-sm font-bold text-[#1c1c19]" style={{ fontFamily: 'Manrope, sans-serif' }}>
                                                     {section.title}
                                                 </h3>
-                                                <span className="text-xs text-[#42493e]/40 font-medium">
+                                                <span className="text-xs text-[#5a5a50]/40 font-medium">
                                                     {selectedCount}/{quota}
                                                 </span>
                                                 {hasAddons && (
@@ -1172,13 +1177,13 @@ export default function CustomizeMealPage() {
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className="text-[10px] font-bold text-[#42493e]/40 uppercase tracking-wider">
+                                            <span className="text-[10px] font-bold text-[#5a5a50]/40 uppercase tracking-wider">
                                                 {section.helper}
                                             </span>
                                         </div>
 
                                         {/* Items list */}
-                                        <div className="divide-y divide-[#f5f2ee]">
+                                        <div className="divide-y divide-[#e8e3da]">
                                             {section.items.map((item) => {
                                                 const isSelected = selectedIds.includes(item.id);
                                                 const isAddonItem = item.isAddon || item.priceDelta > 0;
@@ -1191,8 +1196,8 @@ export default function CustomizeMealPage() {
                                                         onClick={() => toggleSelection(section.id, item)}
                                                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                                                             isSelected
-                                                                ? 'bg-[#fdf7f5]'
-                                                                : 'hover:bg-[#fafaf8]'
+                                                                ? 'bg-[#f2ede4]'
+                                                                : 'hover:bg-[#ede8df]'
                                                         }`}
                                                     >
                                                         {/* Image */}
@@ -1216,7 +1221,7 @@ export default function CustomizeMealPage() {
                                                                 <p className="text-sm font-semibold text-[#1c1c19] truncate leading-tight">{item.name}</p>
                                                             </div>
                                                             {isAddonItem && (
-                                                                <p className="text-[10px] text-[#42493e]/40 mt-0.5 leading-tight">
+                                                                <p className="text-[10px] text-[#5a5a50]/40 mt-0.5 leading-tight">
                                                                     Selects replaces one included item
                                                                 </p>
                                                             )}
@@ -1293,13 +1298,6 @@ export default function CustomizeMealPage() {
                         </div>
                         {/* Action Buttons */}
                         <div className="flex items-center gap-3 w-full md:w-auto">
-                            <button
-                                type="button"
-                                onClick={handleSaveQuote}
-                                className="flex-1 md:flex-none border border-white/30 text-white px-7 py-3 rounded-full text-sm font-bold hover:bg-white/10 transition-all uppercase tracking-wider"
-                            >
-                                Save Quote
-                            </button>
                             <button
                                 type="button"
                                 onClick={() => {

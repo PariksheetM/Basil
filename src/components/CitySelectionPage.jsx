@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, MapPin,
+    MapPin,
     Building, Building2, Landmark, Hotel, Warehouse, Store, School, Factory,
 } from 'lucide-react';
-import BrandLogo from './BrandLogo';
+import MainNavbar from './MainNavbar';
 
 const cityOptions = [
     { name: 'Pune',      Icon: Building,   accent: 'text-[#904b33]', bg: 'bg-[#904b33]/10' },
@@ -33,26 +33,9 @@ const CitySelectionPage = () => {
 
     return (
         <div className="min-h-screen bg-[#fcf9f4] text-[#1c1c19] font-sans">
-            <header className="fixed top-0 left-0 w-full z-10 bg-[#fcf9f4]/90 backdrop-blur-md border-b border-[#c2c9bb]/20">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between shadow-sm">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-[#42493e] hover:text-[#904b33] transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back
-                    </button>
-                    <BrandLogo
-                        className="gap-3"
-                        imgClassName="h-8 w-auto rounded-xl"
-                        labelClassName="text-xl font-bold tracking-tight text-[#154212]"
-                    />
-                    <div className="w-16" />
-                </div>
-            </header>
+            <MainNavbar />
 
-            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-12">
                 <div className="text-center mb-10">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-xs font-bold text-[#904b33] uppercase tracking-[0.18em] shadow-sm mb-4">
                         <MapPin className="w-3.5 h-3.5" />

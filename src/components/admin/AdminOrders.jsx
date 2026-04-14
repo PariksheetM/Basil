@@ -128,6 +128,7 @@ const AdminOrders = () => {
 
     const statusClass = (status) => {
         const normalized = (status || '').toLowerCase();
+        if (normalized.includes('quote')) return 'status-pill bg-purple-100 text-purple-700';
         if (normalized.includes('pending')) return 'status-pill pending';
         if (normalized.includes('confirm')) return 'status-pill confirmed';
         if (normalized === 'preparing') return 'status-pill processing';
@@ -316,22 +317,28 @@ const AdminOrders = () => {
                             <div className="glass-card p-4 shadow-none border border-slate-100">
                                 <p className="text-sm font-bold text-slate-900 mb-2">Menu Items</p>
                                 <div className="grid grid-cols-2 gap-2 text-sm text-slate-700">
-                                    {selectedOrder.items.map((item, index) => (
+                                    {(selectedOrder.items || []).map((item, index) => (
                                         <div key={index} className="flex items-center gap-2">
                                             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                                             <span>{item}</span>
                                         </div>
                                     ))}
                                 </div>
-                                {selectedOrder.addedItems.length > 0 && (
+                                {(selectedOrder.addedItems || []).length > 0 && (
                                     <div className="mt-3 border-t border-slate-100 pt-3">
                                         <p className="text-xs font-bold text-amber-600 mb-1">Extra Items</p>
-                                        {selectedOrder.addedItems.map((item, index) => (
+                                        {(selectedOrder.addedItems || []).map((item, index) => (
                                             <div key={index} className="flex items-center justify-between text-sm">
                                                 <span>{item.name}</span>
                                                 <span className="text-amber-600">+₹{item.price}</span>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                                {selectedOrder.isQuote && selectedOrder.notes && (
+                                    <div className="mt-3 border-t border-slate-100 pt-3">
+                                        <p className="text-xs font-bold text-slate-500 mb-1">Quote Notes</p>
+                                        <p className="text-sm text-slate-700">{selectedOrder.notes}</p>
                                     </div>
                                 )}
                             </div>

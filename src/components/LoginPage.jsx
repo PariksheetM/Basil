@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { UtensilsCrossed, Eye, EyeOff } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { imgUrl } from '../utils/imgUrl.js';
 import AuthService from '../services/authService';
+import { useCart } from '../contexts/CartContext';
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -11,35 +12,60 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { addToCart } = useCart();
+
+    const restorePendingCartItems = () => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        let pendingItems = [];
+        try {
+            pendingItems = JSON.parse(window.localStorage.getItem('pendingCartItems') || '[]');
+        } catch {
+            pendingItems = [];
+        }
+
+        if (Array.isArray(pendingItems) && pendingItems.length) {
+            pendingItems.forEach((item) => addToCart(item));
+            window.localStorage.removeItem('pendingCartItems');
+        }
+    };
+
+    const redirectToNextStep = () => {
+        if (location.state?.redirectAfterLogin) {
+            navigate(location.state.redirectAfterLogin);
+            return;
+        }
+
+        if (typeof window !== 'undefined') {
+            const hasCity = Boolean(window.localStorage.getItem('selectedCity'));
+            const hasOccasion = Boolean(
+                window.localStorage.getItem('selectedOccasionKey') || window.localStorage.getItem('selectedOccasion')
+            );
+
+            if (!hasCity) {
+                navigate('/select-city');
+                return;
+            }
+
+            if (!hasOccasion) {
+                navigate('/select-occasion');
+                return;
+            }
+        }
+
+        navigate('/home');
+    };
 
     useEffect(() => {
         if (!AuthService.isLoggedIn()) {
             return;
         }
-
-        const redirectToNextStep = () => {
-            if (typeof window !== 'undefined') {
-                const hasCity = Boolean(window.localStorage.getItem('selectedCity'));
-                const hasOccasion = Boolean(
-                    window.localStorage.getItem('selectedOccasionKey') || window.localStorage.getItem('selectedOccasion')
-                );
-
-                if (!hasCity) {
-                    navigate('/select-city');
-                    return;
-                }
-
-                if (!hasOccasion) {
-                    navigate('/select-occasion');
-                    return;
-                }
-            }
-
-            navigate('/home');
-        };
-
+        restorePendingCartItems();
         redirectToNextStep();
-    }, [navigate]);
+    }, [navigate, location.state]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -51,24 +77,8 @@ const LoginPage = () => {
         setIsLoading(false);
 
         if (result.success) {
-            if (typeof window !== 'undefined') {
-                const hasCity = Boolean(window.localStorage.getItem('selectedCity'));
-                const hasOccasion = Boolean(
-                    window.localStorage.getItem('selectedOccasionKey') || window.localStorage.getItem('selectedOccasion')
-                );
-
-                if (!hasCity) {
-                    navigate('/select-city');
-                    return;
-                }
-
-                if (!hasOccasion) {
-                    navigate('/select-occasion');
-                    return;
-                }
-            }
-
-            navigate('/home');
+            restorePendingCartItems();
+            redirectToNextStep();
         } else {
             setError(result.message || 'Login failed. Please try again.');
         }

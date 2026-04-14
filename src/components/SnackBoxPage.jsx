@@ -1,9 +1,8 @@
 import React from 'react';
-import { ArrowLeft, ShoppingCart, Filter, Plus, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { imgUrl } from '../utils/imgUrl.js';
 import MenuPreferenceModal from './MenuPreferenceModal';
-import BrandLogo from './BrandLogo';
+import MainNavbar from './MainNavbar';
 
 const SnackBoxPage = () => {
     const navigate = useNavigate();
@@ -20,38 +19,7 @@ const SnackBoxPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-                <header className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-gray-600 hover:text-gray-900 md:hidden">
-                            <ArrowLeft size={24} />
-                        </button>
-                        <BrandLogo
-                            className="flex items-center gap-2"
-                            imgClassName="h-8 w-auto"
-                            labelClassName="hidden md:inline text-lg font-bold text-slate-900"
-                        />
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex gap-6 ml-4">
-                            <button onClick={() => navigate('/home')} className="text-sm font-medium text-gray-500 hover:text-green-600">Home</button>
-                            <button onClick={() => navigate('/meal-box')} className="text-sm font-medium text-green-600">Menu</button>
-                            <button onClick={() => navigate('/orders')} className="text-sm font-medium text-gray-500 hover:text-green-600">Orders</button>
-                        </nav>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <ShoppingCart size={24} className="text-gray-600" />
-                            <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
-                        </div>
-                        <button className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
-                            <User size={18} /> // User icon needs to be imported or available
-                            <span>Account</span>
-                        </button>
-                    </div>
-                </header>
-            </div>
+            <MainNavbar />
 
             <div className="max-w-7xl mx-auto">
                 {/* Quick Nav Options */}
@@ -59,7 +27,7 @@ const SnackBoxPage = () => {
                     <div className="flex gap-4 overflow-x-auto no-scrollbar md:justify-center md:gap-8 pb-2">
                         {/* MealBox Nav */}
                         <div
-                            onClick={() => navigate('/meal-box')}
+                            onClick={() => navigate('/occasion-menu')}
                             className={`flex flex-col items-center gap-1.5 cursor-pointer min-w-[80px] group opacity-60 hover:opacity-100 transition-opacity`}
                         >
                             <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group-hover:border-gray-300 transition-all">

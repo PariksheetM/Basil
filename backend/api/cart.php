@@ -4,6 +4,7 @@ require_once '../config/database_sqlite.php';
 // CORS: allow local dev and deployed frontend
 $allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://basil-five.vercel.app',
     'https://qsr.catalystsolutions.eco',
 ];
@@ -48,7 +49,8 @@ try {
     $stmt->bindParam(":session_token", $session_token);
     $stmt->execute();
 
-    if ($stmt->rowCount() === 0) {
+    $session = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$session) {
         http_response_code(401);
         echo json_encode(array(
             "success" => false,
@@ -57,7 +59,6 @@ try {
         exit();
     }
 
-    $session = $stmt->fetch(PDO::FETCH_ASSOC);
     $user_id = $session['user_id'];
 
     // Handle different request methods
@@ -90,7 +91,8 @@ try {
             $stmt->bindParam(':user_id', $user_id);
             $stmt->execute();
             
-            if ($stmt->rowCount() === 0) {
+            $order = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$order) {
                 http_response_code(200);
                 echo json_encode(array(
                     "success" => true,
@@ -150,7 +152,8 @@ try {
             $stmt->bindParam(':id', $data->menu_item_id);
             $stmt->execute();
             
-            if ($stmt->rowCount() === 0) {
+            $menuItem = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$menuItem) {
                 http_response_code(404);
                 echo json_encode(array(
                     "success" => false,
@@ -159,15 +162,14 @@ try {
                 exit();
             }
             
-            $menuItem = $stmt->fetch(PDO::FETCH_ASSOC);
-            
             // Check if user has an active cart
             $query = "SELECT id FROM orders WHERE user_id = :user_id AND status = 'cart' ORDER BY created_at DESC LIMIT 1";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':user_id', $user_id);
             $stmt->execute();
             
-            if ($stmt->rowCount() === 0) {
+            $orderRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$orderRow) {
                 // Create new cart/order
                 $order_number = 'ORD' . date('Ymd') . rand(1000, 9999);
                 $query = "INSERT INTO orders (user_id, order_number, total_amount, subtotal, status) 
@@ -178,7 +180,6 @@ try {
                 $stmt->execute();
                 $order_id = $db->lastInsertId();
             } else {
-                $orderRow = $stmt->fetch(PDO::FETCH_ASSOC);
                 $order_id = $orderRow['id'];
             }
             
@@ -193,9 +194,9 @@ try {
             $customizations = isset($data->customizations) ? json_encode($data->customizations) : null;
             $special_instructions = isset($data->special_instructions) ? $data->special_instructions : null;
             
-            if ($stmt->rowCount() > 0) {
+            $existingItem = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($existingItem) {
                 // Update existing item quantity
-                $existingItem = $stmt->fetch(PDO::FETCH_ASSOC);
                 $new_quantity = $existingItem['quantity'] + $data->quantity;
                 $new_total = $menuItem['price'] * $new_quantity;
                 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { imgUrl } from '../utils/imgUrl.js';
-import { ArrowLeft, ShoppingCart, User, PartyPopper, Briefcase, Heart, Flower2, Phone, MessageCircle, HelpCircle, X } from 'lucide-react';
+import { PartyPopper, Briefcase, Heart, Flower2, Phone, MessageCircle, HelpCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import BrandLogo from './BrandLogo';
+import MainNavbar from './MainNavbar';
 
 const BuffetPage = () => {
     const navigate = useNavigate();
@@ -94,38 +94,7 @@ const BuffetPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-                <header className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-gray-600 hover:text-gray-900 md:hidden">
-                            <ArrowLeft size={24} />
-                        </button>
-                        <BrandLogo
-                            className="flex items-center gap-2"
-                            imgClassName="h-8 w-auto"
-                            labelClassName="hidden md:inline text-lg font-bold text-slate-900"
-                        />
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex gap-6 ml-4">
-                            <button onClick={() => navigate('/home')} className="text-sm font-medium text-gray-500 hover:text-green-600">Home</button>
-                            <button onClick={() => navigate('/orders')} className="text-sm font-medium text-gray-500 hover:text-green-600">Orders</button>
-                            <button onClick={() => navigate('/account')} className="text-sm font-medium text-gray-500 hover:text-green-600">Account</button>
-                        </nav>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <ShoppingCart size={24} className="text-gray-600" />
-                            <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
-                        </div>
-                        <button className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
-                            <User size={18} />
-                            <span>Account</span>
-                        </button>
-                    </div>
-                </header>
-            </div>
+            <MainNavbar />
 
             <div className="max-w-7xl mx-auto">
                 {/* Hero / Title */}

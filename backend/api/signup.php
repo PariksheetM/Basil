@@ -5,6 +5,7 @@ $dbPath = __DIR__ . '/../database/food_ordering.db';
 // CORS: allow local dev and deployed frontend
 $allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://basil-five.vercel.app',
     'https://qsr.catalystsolutions.eco',
 ];
@@ -82,7 +83,8 @@ try {
     $stmt->bindParam(":email", $data->email);
     $stmt->execute();
 
-    if ($stmt->rowCount() > 0) {
+    $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($existingUser) {
         http_response_code(409);
         echo json_encode(array(
             "success" => false,
